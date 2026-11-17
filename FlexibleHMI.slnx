@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="FlexibleHMI.Interfaces/FlexibleHMI.Interfaces.csproj" Id="90b7a2c7-2965-4b72-8eaf-90186c06f885" />
   <Project Path="FlexibleHMI/FlexibleHMI.csproj" />
   <Project Path="WpfPropertyGrid/WpfPropertyGrid.csproj" />
 </Solution>
