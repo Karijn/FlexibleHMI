@@ -112,10 +112,10 @@ public sealed class TreeDocumentService : ITreeDocumentService
 
         TreeItemNode node = item.Kind switch
         {
-            "leaf" => new LeafItemNode(item.Name),
-            "singleChild" => new SingleChildItemNode(item.Name),
-            "collection" => new CollectionItemNode(item.Name),
-            "grid" => new GridItemNode(item.Name),
+            "leaf" => new LeafItemNode(item.Name, item.Description),
+            "singleChild" => new SingleChildItemNode(item.Name, item.Description),
+            "collection" => new CollectionItemNode(item.Name, item.Description),
+            "grid" => new GridItemNode(item.Name, item.Description),
             _ => throw new InvalidDataException($"Unsupported tree item kind '{item.Kind}'.")
         };
 
@@ -155,6 +155,8 @@ public sealed class TreeDocumentService : ITreeDocumentService
         public string? Kind { get; set; }
 
         public string? Name { get; set; }
+
+        public string? Description { get; set; } = "";
 
         public List<HmiTreeItem>? Children { get; set; }
     }

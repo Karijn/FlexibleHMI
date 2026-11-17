@@ -441,4 +441,14 @@ public partial class MainWindow : Window
     {
         ViewModel.StatusText = "Ready";
     }
+
+    private void AvailableNodesList_OnPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+
+    }
+
+    private void AvailableNodesList_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+
+    }
 }

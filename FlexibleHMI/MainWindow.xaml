@@ -99,6 +99,13 @@
             </Border>
         </DataTemplate>
 
+        <CollectionViewSource x:Key="ListBoxItems" 
+                              Source="{Binding Path=AvailableItems}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Group" />
+            </CollectionViewSource.GroupDescriptions>
+            
+        </CollectionViewSource>
 
     </Window.Resources>
 
@@ -121,9 +128,9 @@
         <KeyBinding Key="Enter" Modifiers="Control+Alt" Command="{Binding AddBeforeItemCommand}" />
     </Window.InputBindings>
 
-    <Grid Margin="16" ShowGridLines="True"
+    <Grid Margin="16"
           Background="{DynamicResource WindowBackgroundBrush}"
-          RowDefinitions="Auto 20 Auto * Auto">
+          RowDefinitions="Auto 50 Auto * Auto">
 
         <!-- Menu -->
         <Menu Grid.Row="0" 
@@ -447,7 +454,8 @@
                 <!-- -->
                 <Grid Grid.Column="0" RowDefinitions="* Auto *">
 
-                    <ListBox Grid.Row="0" ItemsSource="{Binding AvailableItems}"
+                    
+                    <!--<ListBox Grid.Row="0" ItemsSource="{Binding AvailableItems}"
                      SelectedItem="{Binding SelectedItemOption, Mode=TwoWay}"
                      PreviewMouseLeftButtonDown="DragSource_PreviewMouseLeftButtonDown"
                      PreviewMouseMove="DragSource_PreviewMouseMove">
@@ -460,12 +468,68 @@
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
+                    </ListBox>-->
+                    <ListBox PreviewMouseLeftButtonDown="DragSource_PreviewMouseLeftButtonDown"
+                             PreviewMouseMove="DragSource_PreviewMouseMove"
+                             Margin="5,5,5,5"
+                             ItemsSource="{Binding Source={StaticResource ListBoxItems}}"
+                             SelectedIndex="-1"
+                             SelectedItem="{Binding SelectedBranch}">
+
+                        <ListBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.Panel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel Orientation="Vertical" />
+                                    </ItemsPanelTemplate>
+                                </GroupStyle.Panel>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate>
+                                                    <Expander Padding="0"                                           
+                                                              BorderThickness="0"
+                                                              Header="{Binding Name}"
+                                                              IsExpanded="True">
+                                                        <ItemsPresenter/>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderThickness="0">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Width="16"
+                                       Height="16"
+                                       Source="{Binding Image}"/>
+                                            <TextBlock Margin="8,0,0,0" Text="{Binding Name}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                     </ListBox>
 
-                    <GridSplitter Grid.Row="1" Height="5" 
-                           HorizontalAlignment="Stretch" />
 
-                    <Grid Grid.Row="2" Margin="0,0,0,0">
+                    <GridSplitter Grid.Row="1" Height="5" 
+                                  HorizontalAlignment="Stretch"                       
+                                  Background="Gray"
+/>
+
+                    <Grid Grid.Row="2" Margin="5, 5, 5, 0">
                         <TreeView x:Name="ItemTree"
                                   Grid.Row="0"
                                   ItemsSource="{Binding RootItems}"
@@ -528,10 +592,11 @@
             </Expander>
             <!-- -->
             <GridSplitter Grid.Column="1" Width="5" 
+                          Background="Gray"
                           ResizeBehavior="PreviousAndNext"
                           VerticalAlignment="Stretch"
-                      DragDelta="LeftPanelSplitter_DragDelta"
-                      DragCompleted="LeftPanelSplitter_DragCompleted"                          />
+                          DragDelta="LeftPanelSplitter_DragDelta"
+                          DragCompleted="LeftPanelSplitter_DragCompleted"                          />
 
             <Grid Grid.Column="2">
                 <ItemsControl ItemsSource="{Binding RootItems}" >

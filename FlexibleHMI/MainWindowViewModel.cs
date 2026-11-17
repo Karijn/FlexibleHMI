@@ -100,10 +100,10 @@ public partial class MainWindowViewModel : ObservableObject
         RecentFiles = new ObservableCollection<string>(_userSettingsService.RecentFiles);
         AvailableItems = new ObservableCollection<TreeItemOption>
         {
-            new(TreeItemKind.Leaf, "Leaf item", "Cannot contain children", TreeItemOption.CreateDiamondImage(Colors.Red)),
-            new(TreeItemKind.SingleChild, "Single-child item", "Can contain at most one child", TreeItemOption.CreateDiamondImage(Colors.Blue)),
-            new(TreeItemKind.Collection, "Collection item", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Silver)),
-            new(TreeItemKind.Grid, "Grid item", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Gold)),
+            new(TreeItemKind.Leaf, "Leaf item", "Test Nodes", "Cannot contain children", TreeItemOption.CreateDiamondImage(Colors.Red)),
+            new(TreeItemKind.SingleChild, "Single-child item", "Test Nodes", "Can contain at most one child", TreeItemOption.CreateDiamondImage(Colors.Blue)),
+            new(TreeItemKind.Collection, "Collection item", "Test Nodes", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Silver)),
+            new(TreeItemKind.Grid, "Grid item", "Test Nodes", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Gold)),
         };
 
         AddItemCommand = new RelayCommand(() => AddSelectedItem(DropPosition.Child), () => CanAddItemAt(DropPosition.Child));
@@ -1029,10 +1029,10 @@ public partial class MainWindowViewModel : ObservableObject
         var name = $"{option.Name} {_nextItemNumber++}";
         return option.Kind switch
         {
-            TreeItemKind.Leaf => new LeafItemNode(name) { Image = option.Image },
-            TreeItemKind.SingleChild => new SingleChildItemNode(name) { Image = option.Image },
-            TreeItemKind.Collection => new CollectionItemNode(name) { Image = option.Image },
-            TreeItemKind.Grid => new GridItemNode(name) { Image = option.Image },
+            TreeItemKind.Leaf => new LeafItemNode(name, "") { Image = option.Image },
+            TreeItemKind.SingleChild => new SingleChildItemNode(name, "") { Image = option.Image },
+            TreeItemKind.Collection => new CollectionItemNode(name, "") { Image = option.Image },
+            TreeItemKind.Grid => new GridItemNode(name, "") { Image = option.Image },
             _ => throw new InvalidOperationException($"Unsupported item kind: {option.Kind}.")
         };
     }
