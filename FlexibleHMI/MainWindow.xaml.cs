@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -18,6 +19,8 @@ public partial class MainWindow : Window
     private UIElement? _dropAdornedElement;
     private DropPosition _dropPosition;
     private readonly IUserSettingsService _userSettingsService;
+
+    private MainWindowViewModel ViewModel { get => (MainWindowViewModel)DataContext; }
 
     public MainWindow(MainWindowViewModel viewModel, IUserSettingsService userSettingsService)
     {
@@ -361,5 +364,81 @@ public partial class MainWindow : Window
         }
 
         return null;
+    }
+
+    private void LeftPanel_Expanded(object sender, RoutedEventArgs e)
+    {
+        LeftPanelColumn.Width = new GridLength(ViewModel.LeftPanelWidth);
+        ViewModel.StatusText = "Left panel opened";
+    }
+    
+    private void LeftPanelSplitter_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        ViewModel.LeftPanelWidth = LeftPanelColumn.ActualWidth;
+        ViewModel.StatusText = $"Left panel: {Math.Round(ViewModel.LeftPanelWidth):0} px";
+    }
+
+    private void LeftPanelSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        ViewModel.LeftPanelWidth = LeftPanelColumn.ActualWidth;
+        ViewModel.StatusText = $"Left panel: {Math.Round(ViewModel.LeftPanelWidth):0} px";
+    }
+
+    private void LeftPanel_Expander_MouseLeave(object sender, MouseEventArgs e)
+    {
+
+    }
+
+    private void LeftPanel_Collapsed(object sender, RoutedEventArgs e)
+    {
+        ViewModel.LeftPanelWidth = LeftPanelColumn.ActualWidth;
+        LeftPanelColumn.Width = GridLength.Auto;
+        ViewModel.StatusText = "Left panel closed";
+    }
+
+    private void LeftPanel_MouseEnter(object sender, MouseEventArgs e)
+    {
+        ViewModel.StatusText = ViewModel.IsLeftExpanded
+            ? "Close left panel"
+            : "Open left panel";
+
+    }
+
+    private void RightPanelSplitter_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        ViewModel.RightPanelWidth = RightPanelColumn.ActualWidth;
+        ViewModel.StatusText = $"Right panel: {Math.Round(ViewModel.RightPanelWidth):0} px";
+    }
+
+    private void RightPanelSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        ViewModel.RightPanelWidth = RightPanelColumn.ActualWidth;
+        ViewModel.StatusText = $"Right panel: {Math.Round(ViewModel.RightPanelWidth):0} px";
+    }
+
+    private void RightPanel_Collapsed(object sender, RoutedEventArgs e)
+    {
+        ViewModel.RightPanelWidth = RightPanelColumn.ActualWidth;
+        RightPanelColumn.Width = GridLength.Auto;
+        ViewModel.StatusText = "Right panel closed";
+    }
+
+    private void RightPanel_Expanded(object sender, RoutedEventArgs e)
+    {
+        RightPanelColumn.Width = new GridLength(ViewModel.RightPanelWidth);
+        ViewModel.StatusText = "Right panel opened";
+    }
+
+    private void RightPanel_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        ViewModel.StatusText = ViewModel.IsRightExpanded
+            ? "Close right panel"
+            : "Open right panel";
+    }
+
+
+    private void RightPanel_Expander_MouseLeave(object sender, MouseEventArgs e)
+    {
+        ViewModel.StatusText = "Ready";
     }
 }

@@ -14,6 +14,18 @@ public interface IUserSettingsService
 
     bool ShowToolbarText { get; }
 
+    bool IsMainContentFullScreen { get; set; }
+
+
+    bool IsLeftPanelExpanded { get; set; }
+    double LeftPanelWidth { get; set; }
+
+    bool IsRightPanelExpanded { get; set; }
+    double RightPanelWidth { get; set; }
+
+
+
+
     IReadOnlyList<string> RecentFiles { get; }
 
     void AddRecentFile(string filePath);

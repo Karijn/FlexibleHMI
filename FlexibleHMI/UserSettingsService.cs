@@ -49,6 +49,13 @@ public sealed class UserSettingsService : IUserSettingsService
 
     public IReadOnlyList<string> RecentFiles => _settings.RecentFiles;
 
+
+    public bool IsMainContentFullScreen { get => _settings.IsMainContentFullScreen; set => _settings.IsMainContentFullScreen = value; }
+    public bool IsLeftPanelExpanded { get => _settings.IsLeftPanelExpanded; set => _settings.IsLeftPanelExpanded = value; }
+    public double LeftPanelWidth { get => _settings.LeftPanelWidth; set => _settings.LeftPanelWidth = value; }
+    public bool IsRightPanelExpanded { get => _settings.IsRightPanelExpanded; set => _settings.IsRightPanelExpanded = value; }
+    public double RightPanelWidth { get => _settings.RightPanelWidth; set => _settings.RightPanelWidth = value; }
+
     public void AddRecentFile(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -133,6 +140,13 @@ public sealed class UserSettingsService : IUserSettingsService
         public string? LastDocumentPath { get; set; }
 
         public bool ShowToolbarText { get; set; } = true;
+
+        public bool IsMainContentFullScreen { get; set; } = false;
+        public bool IsLeftPanelExpanded { get; set; } = true;
+        public double LeftPanelWidth { get; set ; } = 300;
+        public bool IsRightPanelExpanded { get; set; } = true;
+        public double RightPanelWidth { get; set; } = 300;
+
 
         public List<string>? RecentFiles { get; set; } = new();
     }

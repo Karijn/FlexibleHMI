@@ -13,21 +13,32 @@ public partial class App : Application
         base.OnStartup(e);
 
         _host = Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddSingleton<IConfirmationService, MessageBoxConfirmationService>();
-                services.AddSingleton<IThemeService, ThemeService>();
-                services.AddSingleton<ITreeDocumentService, TreeDocumentService>();
-                services.AddSingleton<IUserSettingsService, UserSettingsService>();
-                services.AddSingleton<MainWindowViewModel>();
-                services.AddSingleton<MainWindow>();
-            })
-            .Build();
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton<IConfirmationService, MessageBoxConfirmationService>();
+                    services.AddSingleton<IThemeService, ThemeService>();
+                    services.AddSingleton<ITreeDocumentService, TreeDocumentService>();
+                    services.AddSingleton<IUserSettingsService, UserSettingsService>();
+                    services.AddSingleton<MainWindowViewModel>();
+                    services.AddSingleton<MainWindow>();
+                })
+                .Build();
 
         _host.Start();
         var settings = _host.Services.GetRequiredService<IUserSettingsService>();
         _host.Services.GetRequiredService<IThemeService>().ApplyTheme(settings.Theme);
-        var viewModel = _host.Services.GetRequiredService<MainWindowViewModel>();
+        MainWindowViewModel viewModel = _host.Services.GetRequiredService<MainWindowViewModel>();
+
+        viewModel.IsMainContentFullScreen = settings.IsMainContentFullScreen;
+
+        //var leftPanel = _serviceProvider.GetRequiredService<LeftExpanderViewModel>();
+        viewModel.IsLeftExpanded = settings.IsLeftPanelExpanded;
+        viewModel.LeftPanelWidth = settings.LeftPanelWidth;
+
+        //var rightPanel = _serviceProvider.GetRequiredService<RightExpanderViewModel>();
+        viewModel.IsRightExpanded = settings.IsRightPanelExpanded;
+        viewModel.RightPanelWidth = settings.RightPanelWidth;
+
         _host.Services.GetRequiredService<MainWindow>().Show();
         viewModel.LoadLastDocumentAtStartup();
     }

@@ -9,7 +9,7 @@ using ParameterRelayCommand = CommunityToolkit.Mvvm.Input.RelayCommand<object?>;
 
 namespace FlexibleHMI;
 
-public class MainWindowViewModel : ObservableObject
+public partial class MainWindowViewModel : ObservableObject
 {
     private readonly IConfirmationService _confirmationService;
     private readonly IThemeService _themeService;
@@ -24,6 +24,68 @@ public class MainWindowViewModel : ObservableObject
     private string _statusMessage = "Ready.";
     private bool _isDirty;
     private int _nextItemNumber = 1;
+
+    public double RightPanelWidth
+    {
+        get => _userSettingsService.RightPanelWidth;
+        set
+        {
+            _userSettingsService.RightPanelWidth = value;
+            OnPropertyChanged();
+        }
+    }
+
+    [ObservableProperty]
+    private string _statusText;
+
+    public double LeftPanelWidth
+    {
+        get => _userSettingsService.LeftPanelWidth;
+        set
+        {
+            _userSettingsService.LeftPanelWidth = value;
+            OnPropertyChanged();
+        }
+    }
+
+
+    public bool IsLeftExpanded
+    {
+        get => _userSettingsService.IsLeftPanelExpanded;
+        set
+        {
+            _userSettingsService.IsLeftPanelExpanded = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool IsRightExpanded
+    {
+        get => _userSettingsService.IsRightPanelExpanded;
+        set
+        {
+            _userSettingsService.IsRightPanelExpanded = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private bool _isMainContentFullScreen;
+
+    public bool IsMainContentFullScreen
+    {
+        get => _isMainContentFullScreen;
+        set
+        {
+            SetProperty(ref _isMainContentFullScreen, value);
+            //OnIsLeftExpandedChanged(value);
+            if (value)
+            {
+                IsLeftExpanded = false;
+                IsRightExpanded = false;
+            }
+        }
+    }
+
 
     public MainWindowViewModel(
         IConfirmationService confirmationService,
@@ -967,7 +1029,7 @@ public class MainWindowViewModel : ObservableObject
         var name = $"{option.Name} {_nextItemNumber++}";
         return option.Kind switch
         {
-            TreeItemKind.Leaf => new LeafItemNode(name) { Image = option.Image},
+            TreeItemKind.Leaf => new LeafItemNode(name) { Image = option.Image },
             TreeItemKind.SingleChild => new SingleChildItemNode(name) { Image = option.Image },
             TreeItemKind.Collection => new CollectionItemNode(name) { Image = option.Image },
             TreeItemKind.Grid => new GridItemNode(name) { Image = option.Image },
