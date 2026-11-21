@@ -17,6 +17,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly IConfirmationService _confirmationService;
     private readonly IThemeService _themeService;
     private readonly ITreeDocumentService _treeDocumentService;
+    private readonly ITreeDocumentProperties _treeDocumentProperties;
     private readonly IUserSettingsService _userSettingsService;
     private readonly IDictionary<string, TreeItemOption> _creators;
     private TreeItemOption? _selectedItemOption;
@@ -95,12 +96,15 @@ public partial class MainWindowViewModel : ObservableObject
         IConfirmationService confirmationService,
         IThemeService themeService,
         ITreeDocumentService treeDocumentService,
+        ITreeDocumentProperties treeDocumentProperties,
         IUserSettingsService userSettingsService,
         IDictionary<string, TreeItemOption> creators)
     {
         _confirmationService = confirmationService;
         _themeService = themeService;
         _treeDocumentService = treeDocumentService;
+        _treeDocumentProperties = treeDocumentProperties;
+        _treeDocumentProperties.Changed += OnDocumentPropertiesChanged;
         _userSettingsService = userSettingsService;
         _creators = creators;
         RecentFiles = new ObservableCollection<string>(_userSettingsService.RecentFiles);
@@ -388,13 +392,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void NewDocument()
     {
-        if (RootItems.Count > 0 && !_confirmationService.Confirm(
-                "Discard the current tree and create a new document? This cannot be undone.",
+        if ((RootItems.Count > 0 || _treeDocumentProperties.GetProperties().Count > 0) && !_confirmationService.Confirm(
+                "Discard the current tree and properties and create a new document? This cannot be undone.",
                 "New document"))
         {
             return;
         }
 
+        _treeDocumentProperties.LoadProperties([]);
         RootItems.Clear();
         SelectedTreeItem = null;
         _clipboardItem = null;
@@ -446,13 +451,14 @@ public partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            if (RootItems.Count > 0 && !_confirmationService.Confirm(
-                    "Replace the current tree with the opened document? This cannot be undone.",
+            if ((RootItems.Count > 0 || _treeDocumentProperties.GetProperties().Count > 0) && !_confirmationService.Confirm(
+                    "Replace the current tree and properties with the opened document? This cannot be undone.",
                     "Open document"))
             {
                 return;
             }
 
+            _treeDocumentProperties.LoadProperties(document.Properties);
             RootItems.Clear();
             foreach (var item in document.Items)
             {
@@ -475,6 +481,11 @@ public partial class MainWindowViewModel : ObservableObject
             StatusMessage = $"Could not open document: {exception.Message}";
             DropStatus = StatusMessage;
         }
+    }
+
+    private void OnDocumentPropertiesChanged(object? sender, EventArgs e)
+    {
+        IsDirty = true;
     }
 
     private void AddRecentFile(string filePath)

@@ -11,9 +11,14 @@ public sealed class TreeDocumentService : ITreeDocumentService
     private const int MaximumTreeDepth = 256;
     private const int MaximumItemCount = 100_000;
 
-    public TreeDocumentService(IDictionary<string, TreeItemOption> creators)
+    private readonly ITreeDocumentProperties _treeDocumentProperties;
+
+    public TreeDocumentService(
+        IDictionary<string, TreeItemOption> creators,
+        ITreeDocumentProperties treeDocumentProperties)
     {
         _creators = creators;
+        _treeDocumentProperties = treeDocumentProperties;
     }
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -37,7 +42,8 @@ public sealed class TreeDocumentService : ITreeDocumentService
         var document = new HmiTreeDocument
         {
             Version = CurrentDocumentVersion,
-            Items = items.Select(ToDocumentItem).ToList()
+            Items = items.Select(ToDocumentItem).ToList(),
+            Properties = _treeDocumentProperties.GetProperties().ToList()
         };
 
         var json = JsonSerializer.Serialize(document, SerializerOptions);
@@ -74,16 +80,26 @@ public sealed class TreeDocumentService : ITreeDocumentService
             items.Add(FromDocumentItem(item, 1, ref itemCount));
         }
 
-        return new LoadedTreeDocument(filePath, items);
+        return new LoadedTreeDocument(filePath, items, document.Properties ?? []);
     }
 
-    private static HmiTreeItem ToDocumentItem(TreeItemNode item) => new()
+    private static HmiTreeItem ToDocumentItem(TreeItemNode item)
     {
-        Kind = item.Kind,
-        Name = item.Name,
-        Description = item.Description,
-        Children = item.Children.Select(ToDocumentItem).ToList()
-    };
+        var documentItem = new HmiTreeItem
+        {
+            Kind = item.Kind,
+            Name = item.Name,
+            Description = item.Description,
+            Children = item.Children.Select(ToDocumentItem).ToList()
+        };
+
+        if (item is ITreeItemDocumentData documentData)
+        {
+            documentItem.Data = documentData.SaveDocumentData();
+        }
+
+        return documentItem;
+    }
 
     private static TreeItemNode FromDocumentItem(HmiTreeItem? item, int depth, ref int itemCount)
     {
@@ -119,6 +135,15 @@ public sealed class TreeDocumentService : ITreeDocumentService
         {
             node = creator.Create();
             node.Name = creator.Name;
+            if (item.Data is { ValueKind: not JsonValueKind.Undefined } data)
+            {
+                if (node is not ITreeItemDocumentData documentData)
+                {
+                    throw new InvalidDataException($"Tree item '{item.Name}' does not support saved item data.");
+                }
+
+                documentData.LoadDocumentData(data);
+            }
 
             //node = item.Kind switch
             //{
@@ -155,6 +180,8 @@ public sealed class TreeDocumentService : ITreeDocumentService
         public int Version { get; set; }
 
         public List<HmiTreeItem>? Items { get; set; }
+
+        public List<TreeDocumentProperty>? Properties { get; set; } = [];
     }
 
     private sealed class HmiTreeItem
@@ -171,6 +198,6 @@ public sealed class TreeDocumentService : ITreeDocumentService
 
         public List<HmiTreeItem>? Children { get; set; }
 
-        
+        public JsonElement? Data { get; set; }
     }
 }

@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlexibleHMI.Interfaces\FlexibleHMI.Interfaces.csproj" />
     <ProjectReference Include="..\PropertyManager.Interfaces\PropertyManager.Interfaces.csproj" />
     <ProjectReference Include="..\PropertyManager\PropertyManager.csproj" />
   </ItemGroup>

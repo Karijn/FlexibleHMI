@@ -1,12 +1,69 @@
 ﻿<UserControl x:Class="FunctionGenerator.UI.FunctionGeneratorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:FunctionGenerator.UI"
-             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+    <DockPanel Margin="12">
+        <Button DockPanel.Dock="Top"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,8"
+                Padding="10,5"
+                Content="Add output"
+                Command="{Binding AddOutputCommand}" />
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Outputs}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,10" Padding="10" BorderBrush="#808080" BorderThickness="1" CornerRadius="4">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,8">
+                                    <Button DockPanel.Dock="Right"
+                                            Padding="8,4"
+                                            Content="Remove"
+                                            Command="{Binding DataContext.RemoveOutputCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Waveform output" />
+                                </DockPanel>
+                                <WrapPanel>
+                                    <StackPanel Width="170" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Property name" />
+                                        <TextBox Text="{Binding PropertyName, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Width="150" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Signal / noise" />
+                                        <ComboBox ItemsSource="{Binding Waveforms}" SelectedItem="{Binding Waveform}" />
+                                    </StackPanel>
+                                    <StackPanel Width="110" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Frequency (Hz)" />
+                                        <TextBox Text="{Binding Frequency, UpdateSourceTrigger=LostFocus}" />
+                                    </StackPanel>
+                                    <StackPanel Width="100" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Amplitude" />
+                                        <TextBox Text="{Binding Amplitude, UpdateSourceTrigger=LostFocus}" />
+                                    </StackPanel>
+                                    <StackPanel Width="100" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Offset" />
+                                        <TextBox Text="{Binding Offset, UpdateSourceTrigger=LostFocus}" />
+                                    </StackPanel>
+                                    <StackPanel Width="130" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Update interval (ms)" />
+                                        <TextBox Text="{Binding UpdateIntervalMilliseconds, UpdateSourceTrigger=LostFocus}" />
+                                    </StackPanel>
+                                </WrapPanel>
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Button MinWidth="70" Margin="0,0,6,0" Padding="8,4" Content="Start" Command="{Binding StartCommand}" />
+                                        <Button MinWidth="70" Padding="8,4" Content="Stop" Command="{Binding StopCommand}" />
+                                    </StackPanel>
+                                    <TextBlock Margin="0,5,8,0" VerticalAlignment="Center" Text="{Binding Status}" TextWrapping="Wrap" />
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
 </UserControl>

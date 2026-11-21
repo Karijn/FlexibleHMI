@@ -73,6 +73,7 @@ public partial class App : Application
     {
         services.AddSingleton<IConfirmationService, MessageBoxConfirmationService>();
         services.AddSingleton<IThemeService, ThemeService>();
+        services.AddSingleton<ITreeDocumentProperties, EmptyTreeDocumentProperties>();
         services.AddSingleton<ITreeDocumentService, TreeDocumentService>();
         services.AddSingleton<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<MainWindowViewModel>();

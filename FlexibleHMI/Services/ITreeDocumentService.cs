@@ -2,7 +2,10 @@ using FlexibleHMI.Interfaces;
 
 namespace FlexibleHMI.Services;
 
-public sealed record LoadedTreeDocument(string FilePath, IReadOnlyList<TreeItemNode> Items);
+public sealed record LoadedTreeDocument(
+    string FilePath,
+    IReadOnlyList<TreeItemNode> Items,
+    IReadOnlyList<TreeDocumentProperty> Properties);
 
 public interface ITreeDocumentService
 {
