@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputPath>..\FlexibleHMI\bin\$(Configuration)\net10.0-windows\Addins\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlexibleHMI.Interfaces\FlexibleHMI.Interfaces.csproj" />
+    <ProjectReference Include="..\FunctionGenerator.Interfaces\FunctionGenerator.Interfaces.csproj" />
+    <ProjectReference Include="..\FunctionGenerator\FunctionGenerator.csproj" />
+    <ProjectReference Include="..\PropertyManager.Interfaces\PropertyManager.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

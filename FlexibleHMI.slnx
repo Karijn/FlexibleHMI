@@ -1,5 +1,11 @@
 <Solution>
   <Project Path="FlexibleHMI.Interfaces/FlexibleHMI.Interfaces.csproj" Id="90b7a2c7-2965-4b72-8eaf-90186c06f885" />
   <Project Path="FlexibleHMI/FlexibleHMI.csproj" />
+  <Project Path="FunctionGenerator.Interfaces/FunctionGenerator.Interfaces.csproj" Id="091690e1-fdc3-490e-a837-e90d9ae07f4b" />
+  <Project Path="FunctionGenerator.UI/FunctionGenerator.UI.csproj" Id="e891c328-7a55-4e40-9337-a40ff89dd966" />
+  <Project Path="FunctionGenerator/FunctionGenerator.csproj" Id="12d27cd0-9544-412d-a89b-73e510f5323b" />
+  <Project Path="PropertyManager.Interfaces/PropertyManager.Interfaces.csproj" />
+  <Project Path="PropertyManager.UI/PropertyManager.UI.csproj" Id="49e5646e-af44-4c10-82fc-ab2cfb8c41cf" />
+  <Project Path="PropertyManager/PropertyManager.csproj" />
   <Project Path="WpfPropertyGrid/WpfPropertyGrid.csproj" />
 </Solution>

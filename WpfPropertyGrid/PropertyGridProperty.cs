@@ -179,8 +179,9 @@ public class PropertyGridProperty : DictionaryObject, IComparable, IComparable<P
         {
             object? changedValue = null;
             if (PropertyType != null && !TryChangeType(value, PropertyType, CultureInfo.CurrentCulture, out changedValue))
-                throw new ArgumentException("Cannot convert value {" + value + "} to type '" + PropertyType.FullName + "'.");
-
+            {
+                //throw new ArgumentException("Cannot convert value {" + value + "} to type '" + PropertyType.FullName + "'.");
+            }
             if (Descriptor != null)
             {
                 try

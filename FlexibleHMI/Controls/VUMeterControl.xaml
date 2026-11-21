@@ -1,0 +1,85 @@
+﻿<UserControl x:Class="FlexibleHMI.Controls.VUMeterControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="500" Height="300">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="FaceBrush" Color="#F5E6C8"/>
+        <SolidColorBrush x:Key="BazelBrush" Color="#4A3728"/>
+        <SolidColorBrush x:Key="RedZoneBrush" Color="#CC0000"/>
+        <SolidColorBrush x:Key="NeedleBrush" Color="#1A1A1A"/>
+    </UserControl.Resources>
+
+    <Border Background="{StaticResource BazelBrush}"
+            CornerRadius="8" Padding="10">
+
+        <Border Background="{StaticResource FaceBrush}"
+                CornerRadius="4">
+
+            <Canvas x:Name="MeterCanvas">
+                <!-- ============================================ -->
+                <!-- NEEDLE                                        -->
+                <!-- ============================================ -->
+                <Line x:Name="Needle"
+                      X1="250" Y1="280"
+                      X2="250" Y2="60"
+                      Stroke="{StaticResource NeedleBrush}"
+                      StrokeThickness="2"
+                      StrokeStartLineCap="Round">
+                    <Line.RenderTransform>
+                        <RotateTransform x:Name="NeedleRotation"
+                                         CenterX="250" CenterY="280"
+                                         Angle="{Binding NeedleAngle}"/>
+                    </Line.RenderTransform>
+                </Line>
+
+                <!-- Needle pivot cover (small circle) -->
+                <Ellipse Width="16" Height="16"
+                         Fill="{StaticResource NeedleBrush}"
+                         Canvas.Left="242" Canvas.Top="272"/>
+
+                <!-- ============================================ -->
+                <!-- VU LABEL                                      -->
+                <!-- ============================================ -->
+                <TextBlock Text="VU"
+                           FontSize="28" FontWeight="Bold"
+                           FontFamily="Times New Roman"
+                           Canvas.Left="230" Canvas.Top="190"/>
+
+                <!-- ============================================ -->
+                <!-- PEAK LED                                      -->
+                <!-- ============================================ -->
+                <Ellipse x:Name="PeakLed"
+                         Width="14" Height="14"
+                         Canvas.Left="430" Canvas.Top="200"
+                         Stroke="DarkRed" StrokeThickness="1">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="DarkRed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPeakActive}" Value="true">
+                                    <Setter Property="Fill" Value="Red"/>
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Red"
+                                                              BlurRadius="10"
+                                                              ShadowDepth="0"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+
+                <TextBlock Text="PEAK"
+                           FontSize="9"
+                           Canvas.Left="422" Canvas.Top="216"/>
+
+            </Canvas>
+
+        </Border>
+
+    </Border>
+
+</UserControl>
