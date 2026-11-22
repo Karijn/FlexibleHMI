@@ -1,11 +1,32 @@
 <Solution>
-  <Project Path="FlexibleHMI.Interfaces/FlexibleHMI.Interfaces.csproj" Id="90b7a2c7-2965-4b72-8eaf-90186c06f885" />
-  <Project Path="FlexibleHMI/FlexibleHMI.csproj" />
-  <Project Path="FunctionGenerator.Interfaces/FunctionGenerator.Interfaces.csproj" Id="091690e1-fdc3-490e-a837-e90d9ae07f4b" />
-  <Project Path="FunctionGenerator.UI/FunctionGenerator.UI.csproj" Id="e891c328-7a55-4e40-9337-a40ff89dd966" />
-  <Project Path="FunctionGenerator/FunctionGenerator.csproj" Id="12d27cd0-9544-412d-a89b-73e510f5323b" />
-  <Project Path="PropertyManager.Interfaces/PropertyManager.Interfaces.csproj" />
-  <Project Path="PropertyManager.UI/PropertyManager.UI.csproj" Id="49e5646e-af44-4c10-82fc-ab2cfb8c41cf" />
-  <Project Path="PropertyManager/PropertyManager.csproj" />
-  <Project Path="WpfPropertyGrid/WpfPropertyGrid.csproj" />
+  <Folder Name="/Calculator/">
+    <Project Path="Calculator.Interfaces/Calculator.Interfaces.csproj" Id="6949bc74-59c3-4821-ab08-51857a72e6c8" />
+    <Project Path="Calculator.UI/Calculator.UI.csproj" Id="739e3c77-4425-4713-936b-b166c7b2cdc4" />
+    <Project Path="Calculator/Calculator.csproj" Id="99439aa4-40ff-4a75-867f-981c7216b593" />
+  </Folder>
+  <Folder Name="/Communication Manager/">
+    <Project Path="CommunicationManager.Interfaces/CommunicationManager.Interfaces.csproj" Id="dd0a5250-0857-49ed-abd9-9ba9a11a845a" />
+    <Project Path="CommunicationManager.UI/CommunicationManager.UI.csproj" Id="26d0b336-310c-4fc5-a0ef-68adb2aa566a" />
+    <Project Path="CommunicationManager/CommunicationManager.csproj" Id="cc7f072d-883f-46ff-9519-5b8d4aa4182b" />
+  </Folder>
+  <Folder Name="/Flexible HMI/">
+    <Project Path="FlexibleHMI.Interfaces/FlexibleHMI.Interfaces.csproj" Id="90b7a2c7-2965-4b72-8eaf-90186c06f885" />
+    <Project Path="FlexibleHMI/FlexibleHMI.csproj" />
+  </Folder>
+  <Folder Name="/Function Generator/">
+    <Project Path="FunctionGenerator.Interfaces/FunctionGenerator.Interfaces.csproj" Id="091690e1-fdc3-490e-a837-e90d9ae07f4b" />
+    <Project Path="FunctionGenerator.UI/FunctionGenerator.UI.csproj" Id="e891c328-7a55-4e40-9337-a40ff89dd966" />
+    <Project Path="FunctionGenerator/FunctionGenerator.csproj" Id="12d27cd0-9544-412d-a89b-73e510f5323b" />
+  </Folder>
+  <Folder Name="/Layout/">
+    <Project Path="WpfPropertyGrid/WpfPropertyGrid.csproj" />
+  </Folder>
+  <Folder Name="/Property Manager/">
+    <Project Path="PropertyManager.Interfaces/PropertyManager.Interfaces.csproj" />
+    <Project Path="PropertyManager.UI/PropertyManager.UI.csproj" Id="49e5646e-af44-4c10-82fc-ab2cfb8c41cf" />
+    <Project Path="PropertyManager/PropertyManager.csproj" />
+  </Folder>
+  <Folder Name="/VUMeter/">
+    <Project Path="VUMeter.UI/VUMeter.UI.csproj" Id="50866dfb-2e69-4950-84e7-892f77169a74" />
+  </Folder>
 </Solution>

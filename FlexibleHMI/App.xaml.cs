@@ -32,8 +32,8 @@ public partial class App : Application
         AddAssemblies(AppContext.BaseDirectory, assemblies);
         AddAssemblies(addinsDirectory, assemblies);
 
-        services.AddTransient<VUMeterControl>();
-        services.AddTransient<VuMeterNode>();
+        //services.AddTransient<VUMeterControl>();
+        //services.AddTransient<VuMeterNode>();
 
 
         var addIns = RegisterAddinServices(services, assemblies);
@@ -45,7 +45,7 @@ public partial class App : Application
         var dataTemplateManager = _serviceProvider.GetRequiredService<IDataTemplateManager>();
         InitializeAddIns(addIns, _serviceProvider, dataTemplateManager);
 
-        dataTemplateManager.RegisterDataTemplate<VuMeterNode, VUMeterControl>();
+        //dataTemplateManager.RegisterDataTemplate<VuMeterNode, VUMeterControl>();
 
         var creators = _serviceProvider.GetRequiredService<IDictionary<string, TreeItemOption>>();
 
@@ -82,20 +82,20 @@ public partial class App : Application
         services.AddSingleton<IDataTemplateManager, DataTemplateManager>();
 
         //services.AddTransient<LeafItemNode>();
-        services.AddKeyedTransient<TreeItemOption, LeafCreator>("leaf");
-        services.AddKeyedTransient<TreeItemNode, LeafItemNode>("leaf");
+        //services.AddKeyedTransient<TreeItemOption, LeafCreator>("leaf");
+        //services.AddKeyedTransient<TreeItemNode, LeafItemNode>("leaf");
 
-        services.AddKeyedTransient<TreeItemOption, SingleChildCreator>("singlechild");
-        services.AddKeyedTransient<TreeItemNode, SingleChildItemNode>("singlechild");
+        //services.AddKeyedTransient<TreeItemOption, SingleChildCreator>("singlechild");
+        //services.AddKeyedTransient<TreeItemNode, SingleChildItemNode>("singlechild");
 
-        services.AddKeyedTransient<TreeItemOption, CollectionCreator>("collection");
-        services.AddKeyedTransient<TreeItemNode, CollectionItemNode>("collection");
+        //services.AddKeyedTransient<TreeItemOption, CollectionCreator>("collection");
+        //services.AddKeyedTransient<TreeItemNode, CollectionItemNode>("collection");
 
-        services.AddKeyedTransient<TreeItemOption, GridCreator>("grid");
-        services.AddKeyedTransient<TreeItemNode, GridItemNode>("grid");
+        //services.AddKeyedTransient<TreeItemOption, GridCreator>("grid");
+        //services.AddKeyedTransient<TreeItemNode, GridItemNode>("grid");
 
-        services.AddKeyedTransient<TreeItemOption, VuMeterCreator>("vu meter");
-        services.AddKeyedTransient<TreeItemNode, VuMeterNode>("vu meter");
+        //services.AddKeyedTransient<TreeItemOption, VuMeterCreator>("vu meter");
+        //services.AddKeyedTransient<TreeItemNode, VuMeterNode>("vu meter");
 
         //services.AddTransient<Func<TreeItemNode>>(provider =>
         //    () => provider.GetRequiredKeyedService<TreeItemNode>("leaf"));
@@ -197,21 +197,24 @@ public partial class App : Application
     {
         if (_serviceProvider is not null)
         {
-            _serviceProvider.Dispose();
+            try
+            {
+                var viewModel = _serviceProvider.GetService<MainWindowViewModel>();
+                if (viewModel is not null && !viewModel.StopDocumentRuntimeActivity())
+                {
+                    System.Diagnostics.Trace.TraceError(viewModel.StatusMessage);
+                }
+            }
+            finally
+            {
+                _serviceProvider.Dispose();
+            }
         }
 
         base.OnExit(e);
     }
 }
 
-
-//public class LeafCreator : TreeItemOption
-//{
-//    public LeafCreator()
-//        : base("leaf", "Leaf item", "Test Nodes", "Cannot contain children", TreeItemOption.CreateDiamondImage(Colors.Red),
-//            () => new LeafItemNode())
-//    { }
-//}
 
 public class LeafCreator : TreeItemOption
 {
@@ -252,10 +255,10 @@ public class GridCreator : TreeItemOption
     { }
 }
 
-public class VuMeterCreator : TreeItemOption
-{
-    public VuMeterCreator(IServiceProvider serviceProvider) 
-        : base("vu meter", "Vu Meter", "Numeric Controls", "No Children here", TreeItemOption.CreateDiamondImage(Colors.DarkBlue), 
-        serviceProvider)
-    { }
-}
+//public class VuMeterCreator : TreeItemOption
+//{
+//    public VuMeterCreator(IServiceProvider serviceProvider) 
+//        : base("vu meter", "Vu Meter", "Numeric Controls", "No Children here", TreeItemOption.CreateDiamondImage(Colors.DarkBlue), 
+//        serviceProvider)
+//    { }
+//}

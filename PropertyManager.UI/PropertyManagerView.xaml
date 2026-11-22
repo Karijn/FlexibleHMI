@@ -8,20 +8,20 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="600">
-    <Grid Margin="12">
+    <Expander Margin="12" Header="Property Manager" IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+      <Grid Margin="4,8,4,4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Margin="0,0,0,12" FontSize="20" FontWeight="SemiBold"
-                   Text="Property Manager" />
-
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="12" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <TabControl Grid.Row="1">
+            <TabItem Header="Properties">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="0">
                 <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Orientation="Horizontal">
@@ -50,9 +50,65 @@
                 <TextBlock Margin="0,0,0,4" Text="Type" />
                 <ComboBox Margin="0,0,0,10" Padding="6" ItemsSource="{Binding PropertyTypes}"
                           SelectedItem="{Binding SelectedType, Mode=TwoWay}" />
+                <TextBlock Margin="0,0,0,4" Text="Struct type">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedType}" Value="Struct">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <ComboBox Margin="0,0,0,10" Padding="6" ItemsSource="{Binding StructTypeNames}"
+                          SelectedItem="{Binding SelectedStructType, Mode=TwoWay}">
+                    <ComboBox.Style>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedType}" Value="Struct">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ComboBox.Style>
+                </ComboBox>
 
-                <TextBlock Margin="0,0,0,4" Text="Value" />
-                <TextBox Padding="6" Text="{Binding ValueInput, UpdateSourceTrigger=PropertyChanged}">
+                <TextBlock Margin="0,0,0,4" Text="Array element type">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedType}" Value="Array">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <ComboBox Margin="0,0,0,10" Padding="6" IsEditable="True"
+                          ItemsSource="{Binding ArrayElementTypes}"
+                          Text="{Binding SelectedArrayElementType, UpdateSourceTrigger=PropertyChanged}">
+                    <ComboBox.Style>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedType}" Value="Array">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ComboBox.Style>
+                </ComboBox>
+
+                <TextBlock Margin="0,0,0,4" Text="Value (JSON)" />
+                <TextBlock Margin="0,0,0,6" TextWrapping="Wrap"
+                           Text="Enter struct fields as a JSON object or array values as a JSON array. Nested structs and arrays are supported; use element types such as Integer, Device, or Integer[]." />
+                <TextBox Padding="6" MinHeight="90" AcceptsReturn="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         Text="{Binding ValueInput, UpdateSourceTrigger=PropertyChanged}">
                     <TextBox.Style>
                         <Style TargetType="TextBox">
                             <Style.Triggers>
@@ -82,6 +138,67 @@
                 <Button Padding="10,6" HorizontalAlignment="Left" Content="Save property"
                         Command="{Binding SavePropertyCommand}" />
             </StackPanel>
-        </Grid>
-    </Grid>
-</UserControl>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Struct types">
+                        <Grid Margin="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="220" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <DockPanel Grid.Column="0">
+                                <Button DockPanel.Dock="Top" Margin="0,0,0,8" Padding="10,5"
+                                        Content="New struct type" Command="{Binding NewStructTypeCommand}" />
+                                <ListView ItemsSource="{Binding StructTypes}"
+                                          SelectedItem="{Binding SelectedStructTypeDefinition, Mode=TwoWay}"
+                                          DisplayMemberPath="Name" />
+                            </DockPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Margin="0,0,0,8" FontSize="16" FontWeight="SemiBold"
+                                           Text="Create or edit struct type" />
+                                <TextBlock Margin="0,0,0,4" Text="Type name" />
+                                <TextBox Margin="0,0,0,10" Padding="6"
+                                         Text="{Binding StructTypeName, UpdateSourceTrigger=PropertyChanged}" />
+                                <DockPanel Margin="0,0,0,8">
+                                    <Button DockPanel.Dock="Right" Padding="10,5" Content="Add field"
+                                            Command="{Binding AddStructFieldCommand}" />
+                                    <TextBlock VerticalAlignment="Center" Text="Fields can reference other struct types." />
+                                </DockPanel>
+                                <ItemsControl ItemsSource="{Binding StructFields}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*" />
+                                                    <ColumnDefinition Width="2*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0" Margin="0,0,8,0" Padding="5"
+                                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                                <ComboBox Grid.Column="1" Margin="0,0,8,0" Padding="5" IsEditable="True"
+                                                          ItemsSource="{Binding DataContext.StructFieldTypes, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          Text="{Binding TypeName, UpdateSourceTrigger=PropertyChanged}" />
+                                                <Button Grid.Column="2" Padding="8,4" Content="Remove"
+                                                        Command="{Binding DataContext.RemoveStructFieldCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Margin="0,4,0,10" Foreground="Firebrick" TextWrapping="Wrap"
+                                           Text="{Binding ErrorMessage}" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Padding="10,6" Content="Save struct type"
+                                            Command="{Binding SaveStructTypeCommand}" />
+                                    <Button Margin="8,0,0,0" Padding="10,6" Content="Delete struct type"
+                                            Command="{Binding DeleteStructTypeCommand}"
+                                            IsEnabled="{Binding IsEditingStructType}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                        </TabControl>
+                      </Grid>
+                    </Expander>
+                </UserControl>

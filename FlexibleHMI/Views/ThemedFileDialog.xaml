@@ -27,6 +27,7 @@
                  Background="{DynamicResource SurfaceBrush}"
                  Foreground="{DynamicResource ForegroundBrush}"
                  BorderBrush="{DynamicResource BorderBrush}"
+                 ItemsSource="{Binding Entries}"
                  SelectionChanged="EntriesListBox_SelectionChanged"
                  MouseDoubleClick="EntriesListBox_MouseDoubleClick">
             <ListBox.ItemTemplate>

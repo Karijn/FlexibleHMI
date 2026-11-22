@@ -1,34 +1,28 @@
 ﻿using FlexibleHMI.Interfaces;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace PropertyManager.UI
 {
     public class PropertyManagerCreator : TreeItemOption
     {
         public PropertyManagerCreator(IServiceProvider serviceProvider)
-            : base(defaultkind, defaultname, defaultgroup, defaultdescription, defaultimage(), serviceProvider)
+            : base(jsonkey, defaultname, defaultgroup, defaultdescription, GetIcon(), serviceProvider)
         {
         }
 
-        internal const string defaultkind = "propertymanager";
+        internal const string jsonkey = "propertymanager";
         internal const string defaultname = "property manager";
         internal const string defaultgroup = "Properties";
         internal const string defaultdescription = "a property manager";
 
-        internal static ImageSource defaultimage() => CreateDiamondImage(Colors.BlueViolet);
+        internal static ImageSource defaultimage() => GetIcon(); //  CreateDiamondImage(Colors.BlueViolet);
 
-        private static ImageSource CreateDiamondImage(Color color)
+        internal static ImageSource GetIcon()
         {
-            var geometry = Geometry.Parse("M 8,0 L 16,8 L 8,16 L 0,8 Z");
-            geometry.Freeze();
+            var uri = new Uri("pack://application:,,,/PropertyManager.UI;component/Resources/Properties.png", UriKind.Absolute);
 
-            var drawing = new GeometryDrawing(new SolidColorBrush(color), null, geometry);
-            drawing.Freeze();
-
-            var image = new DrawingImage(drawing);
-            image.Freeze();
-            return image;
+            return new BitmapImage(uri);
         }
-
     }
 }

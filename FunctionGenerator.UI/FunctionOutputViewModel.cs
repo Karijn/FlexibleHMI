@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FunctionGenerator;
 using PropertyManager.Interfaces;
 using System.Diagnostics;
 
@@ -10,6 +9,7 @@ public partial class FunctionOutputViewModel : ObservableObject
 {
     private readonly IVariableHandler _variableHandler;
     private CancellationTokenSource? _cancellationTokenSource;
+    private Task? _generationTask;
 
     public FunctionOutputViewModel(IVariableHandler variableHandler, string propertyName)
     {
@@ -70,9 +70,10 @@ public partial class FunctionOutputViewModel : ObservableObject
             : "Running (stop and restart to apply setting changes)";
         NotifyCommands();
 
+        Task? generationTask = null;
         try
         {
-            await Task.Run(async () =>
+            generationTask = Task.Run(async () =>
             {
                 var stopwatch = Stopwatch.StartNew();
                 var noiseGenerator = new SignalNoiseGenerator();
@@ -85,6 +86,8 @@ public partial class FunctionOutputViewModel : ObservableObject
                         SignalGenerator.Generate(waveform, phase, amplitude, offset, noiseGenerator));
                 }
             });
+            _generationTask = generationTask;
+            await generationTask;
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
         {
@@ -96,6 +99,11 @@ public partial class FunctionOutputViewModel : ObservableObject
         }
         finally
         {
+            if (ReferenceEquals(_generationTask, generationTask))
+            {
+                _generationTask = null;
+            }
+
             cancellationTokenSource.Dispose();
             if (ReferenceEquals(_cancellationTokenSource, cancellationTokenSource))
             {
@@ -112,14 +120,31 @@ public partial class FunctionOutputViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsRunning))]
-    private void Stop()
-    {
-        _cancellationTokenSource?.Cancel();
-    }
+    private void Stop() => StopGeneration();
 
     public void StopGeneration()
     {
-        _cancellationTokenSource?.Cancel();
+        var cancellationTokenSource = _cancellationTokenSource;
+        cancellationTokenSource?.Cancel();
+
+        var generationTask = _generationTask;
+        if (generationTask is null)
+        {
+            return;
+        }
+
+        try
+        {
+            generationTask.GetAwaiter().GetResult();
+        }
+        catch (OperationCanceledException) when (cancellationTokenSource?.IsCancellationRequested == true)
+        {
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or InvalidOperationException or OverflowException)
+        {
+            Status = $"Stopped: {exception.Message}";
+        }
     }
 
     public FunctionOutputViewModel Copy(IVariableHandler variableHandler) => new(variableHandler, PropertyName)

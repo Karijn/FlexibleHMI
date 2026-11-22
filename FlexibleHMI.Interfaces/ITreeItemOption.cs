@@ -9,8 +9,6 @@ namespace FlexibleHMI.Interfaces
         ImageSource Image { get; }
         string Kind { get; }
         string Name { get; }
-
-        static abstract ImageSource CreateDiamondImage(Color color);
         TreeItemNode Create();
         string ToString();
     }

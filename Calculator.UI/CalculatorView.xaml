@@ -1,0 +1,80 @@
+﻿<UserControl x:Class="Calculator.UI.CalculatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800"
+             MinWidth="650">
+    <Expander Margin="12" Header="Calculator" IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+      <DockPanel Margin="4,8,4,4">
+        <Button DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="0,0,0,8" Padding="10,5"
+                Content="Add calculation" Command="{Binding AddCalculationCommand}" />
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="220" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Calculations}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,10" Padding="10" BorderBrush="#808080" BorderThickness="1" CornerRadius="4">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <CheckBox DockPanel.Dock="Left" VerticalAlignment="Center" Content="Enabled"
+                                                  IsChecked="{Binding Enabled, Mode=TwoWay}" />
+                                        <Button DockPanel.Dock="Right" Padding="8,4" Content="Remove"
+                                                Command="{Binding DataContext.RemoveCalculationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <TextBlock Margin="12,0,8,0" FontSize="16" FontWeight="SemiBold"
+                                                   Text="Property calculation" />
+                                    </DockPanel>
+
+                                    <TextBlock Margin="0,0,0,3" Text="Expression" />
+                                    <TextBox Margin="0,0,0,8" Padding="6"
+                                             Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <WrapPanel>
+                                        <StackPanel Width="220" Margin="0,0,12,8">
+                                            <TextBlock Margin="0,0,0,3" Text="Output property name" />
+                                            <TextBox Padding="6" Text="{Binding OutputPropertyName, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <StackPanel Width="120" Margin="0,0,12,8">
+                                            <TextBlock Margin="0,0,0,3" Text="Output type" />
+                                            <ComboBox Padding="6" ItemsSource="{Binding OutputTypes}"
+                                                      SelectedItem="{Binding OutputType, Mode=TwoWay}" />
+                                        </StackPanel>
+                                    </WrapPanel>
+
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Padding="8,4" Content="Calculate"
+                                                Command="{Binding RecalculateCommand}" />
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="{Binding Result}" />
+                                            <TextBlock Foreground="#606060" TextWrapping="Wrap" Text="{Binding Status}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Border Grid.Column="2" Padding="10" BorderBrush="#808080" BorderThickness="1" CornerRadius="4">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" FontSize="16" FontWeight="SemiBold"
+                               Text="Available properties" />
+                    <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap"
+                               Text="Use names directly (MyProperty), brace names with spaces ({Outside Temperature}), struct fields (MyStruct.Settings.Limit), or array elements (Samples[0], Devices[1].Temperature). Paths can end in numeric or boolean values. Operators: + - * / % ^, == != &lt; &lt;= &gt; &gt;=, &amp;&amp; || !. Functions include abs, sqrt, sin, cos, tan, log, round, min, max, pow and clamp." />
+                    <ListBox ItemsSource="{Binding AvailableProperties}" />
+                </DockPanel>
+            </Border>
+        </Grid>
+      </DockPanel>
+    </Expander>
+</UserControl>

@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Properties.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 
@@ -16,6 +20,10 @@
     <ProjectReference Include="..\FlexibleHMI.Interfaces\FlexibleHMI.Interfaces.csproj" />
     <ProjectReference Include="..\PropertyManager.Interfaces\PropertyManager.Interfaces.csproj" />
     <ProjectReference Include="..\PropertyManager\PropertyManager.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Properties.png" />
   </ItemGroup>
 
 </Project>

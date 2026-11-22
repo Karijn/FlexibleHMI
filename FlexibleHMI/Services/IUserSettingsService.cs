@@ -14,6 +14,10 @@ public interface IUserSettingsService
 
     bool ShowToolbarText { get; }
 
+    bool AutoSave { get; }
+
+    bool AutoSaveOnClose { get; }
+
     bool IsMainContentFullScreen { get; set; }
 
 
@@ -39,4 +43,8 @@ public interface IUserSettingsService
     void SaveLastDocumentPath(string filePath);
 
     void SaveShowToolbarText(bool show);
+
+    void SaveAutoSave(bool enabled);
+
+    void SaveAutoSaveOnClose(bool enabled);
 }

@@ -145,68 +145,67 @@ public sealed class GridItemNode : TreeItemNode
 
 }
 
-public sealed partial class VuMeterNode : TreeItemNode
-{
-    public VuMeterNode() : base()
-    {
-        Image = CreateDiamondImage(Colors.DarkBlue);
-    }
+//public sealed partial class VuMeterNode : TreeItemNode
+//{
+//    public VuMeterNode() : base()
+//    {
+//        Image = CreateDiamondImage(Colors.DarkBlue);
+//    }
 
-    public override string Kind => "vu meter";
+//    public override string Kind => "vu meter";
 
+//    public override int MaxChildren => 0;
 
-    public override int MaxChildren => 0;
+//    public override string ChildRule => "No children";
 
-    public override string ChildRule => "No children";
+//    public override bool CanAcceptChildren => true;
 
-    public override bool CanAcceptChildren => true;
+//    private static ImageSource CreateDiamondImage(Color color)
+//    {
+//        var geometry = Geometry.Parse("M 8,0 L 16,8 L 8,16 L 0,8 Z");
+//        geometry.Freeze();
 
-    private static ImageSource CreateDiamondImage(Color color)
-    {
-        var geometry = Geometry.Parse("M 8,0 L 16,8 L 8,16 L 0,8 Z");
-        geometry.Freeze();
+//        var drawing = new GeometryDrawing(new SolidColorBrush(color), null, geometry);
+//        drawing.Freeze();
 
-        var drawing = new GeometryDrawing(new SolidColorBrush(color), null, geometry);
-        drawing.Freeze();
+//        var image = new DrawingImage(drawing);
+//        image.Freeze();
+//        return image;
+//    }
 
-        var image = new DrawingImage(drawing);
-        image.Freeze();
-        return image;
-    }
+//    public override TreeItemNode Copy()
+//    {
+//        TreeItemNode copy = Copy(new VuMeterNode());
+//        return copy;
+//    }
 
-    public override TreeItemNode Copy()
-    {
-        TreeItemNode copy = Copy(new VuMeterNode());
-        return copy;
-    }
+//    // Current VU level (range: -20 to +3)
+//    [ObservableProperty]
+//    private double _currentVuLevel = -20.0;
 
-    // Current VU level (range: -20 to +3)
-    [ObservableProperty]
-    private double _currentVuLevel = -20.0;
+//    // Needle angle in degrees (mapped from VU level)
+//    // The arc spans roughly from -45deg (left, -20 VU) to +45deg (right, +3 VU)
+//    [ObservableProperty]
+//    private double _needleAngle = -45.0;
 
-    // Needle angle in degrees (mapped from VU level)
-    // The arc spans roughly from -45deg (left, -20 VU) to +45deg (right, +3 VU)
-    [ObservableProperty]
-    private double _needleAngle = -45.0;
+//    // Peak LED indicator
+//    [ObservableProperty]
+//    private bool _isPeakActive = false;
 
-    // Peak LED indicator
-    [ObservableProperty]
-    private bool _isPeakActive = false;
+//    // Map VU level to needle angle
+//    public void UpdateLevel(double vuLevel)
+//    {
+//        CurrentVuLevel = vuLevel;
 
-    // Map VU level to needle angle
-    public void UpdateLevel(double vuLevel)
-    {
-        CurrentVuLevel = vuLevel;
+//        // Map -20..+3 VU to -45..+45 degrees
+//        // Linear interpolation: angle = ((vuLevel - (-20)) / (3 - (-20))) * 90 - 45
+//        NeedleAngle = ((vuLevel + 20.0) / 23.0) * 90.0 - 45.0;
 
-        // Map -20..+3 VU to -45..+45 degrees
-        // Linear interpolation: angle = ((vuLevel - (-20)) / (3 - (-20))) * 90 - 45
-        NeedleAngle = ((vuLevel + 20.0) / 23.0) * 90.0 - 45.0;
+//        // Activate peak LED if level exceeds 0 VU
+//        IsPeakActive = vuLevel >= 0.0;
+//    }
 
-        // Activate peak LED if level exceeds 0 VU
-        IsPeakActive = vuLevel >= 0.0;
-    }
-
-}
+//}
 
 
 //public sealed class TreeItemOption(string kind, string name, string group, string description, ImageSource image, Func<TreeItemNode> creator)

@@ -124,6 +124,10 @@ public abstract class TreeItemNode : ObservableObject
         return copy;
     }
 
+    public virtual void StopRuntimeActivity()
+    {
+    }
+
     public abstract TreeItemNode Copy();
 
 }

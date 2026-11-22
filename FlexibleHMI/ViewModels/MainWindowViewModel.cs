@@ -8,6 +8,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using ParameterRelayCommand = CommunityToolkit.Mvvm.Input.RelayCommand<object?>;
 
 namespace FlexibleHMI.ViewModels;
@@ -28,6 +29,8 @@ public partial class MainWindowViewModel : ObservableObject
     private string? _currentFilePath;
     private string _statusMessage = "Ready.";
     private bool _isDirty;
+    private readonly HashSet<IDocumentDataChangeNotifier> _documentDataNotifiers = [];
+    private readonly DispatcherTimer _autoSaveTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private int _nextItemNumber = 1;
 
     public double RightPanelWidth
@@ -107,6 +110,7 @@ public partial class MainWindowViewModel : ObservableObject
         _treeDocumentProperties.Changed += OnDocumentPropertiesChanged;
         _userSettingsService = userSettingsService;
         _creators = creators;
+        _autoSaveTimer.Tick += OnAutoSaveTimerTick;
         RecentFiles = new ObservableCollection<string>(_userSettingsService.RecentFiles);
 
         //var creators = _serviceProvider.GetRequiredService<IDictionary<string, TreeItemOption>>();
@@ -239,10 +243,24 @@ public partial class MainWindowViewModel : ObservableObject
         {
             if (_isDirty == value)
             {
+                if (value)
+                {
+                    ScheduleAutoSave();
+                }
+
                 return;
             }
 
             _isDirty = value;
+            if (value)
+            {
+                ScheduleAutoSave();
+            }
+            else
+            {
+                _autoSaveTimer.Stop();
+            }
+
             OnPropertyChanged();
             OnPropertyChanged(nameof(WindowTitle));
         }
@@ -285,6 +303,68 @@ public partial class MainWindowViewModel : ObservableObject
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 StatusMessage = $"Could not save toolbar setting: {exception.Message}";
+            }
+        }
+    }
+
+    public bool AutoSave
+    {
+        get => _userSettingsService.AutoSave;
+        set
+        {
+            if (_userSettingsService.AutoSave == value)
+            {
+                return;
+            }
+
+            try
+            {
+                _userSettingsService.SaveAutoSave(value);
+                OnPropertyChanged();
+                if (value && IsDirty)
+                {
+                    ScheduleAutoSave();
+                }
+                else
+                {
+                    _autoSaveTimer.Stop();
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                StatusMessage = $"Could not save auto-save setting: {exception.Message}";
+                OnPropertyChanged();
+                if (AutoSave && IsDirty)
+                {
+                    ScheduleAutoSave();
+                }
+                else
+                {
+                    _autoSaveTimer.Stop();
+                }
+            }
+        }
+    }
+
+    public bool AutoSaveOnClose
+    {
+        get => _userSettingsService.AutoSaveOnClose;
+        set
+        {
+            if (_userSettingsService.AutoSaveOnClose == value)
+            {
+                return;
+            }
+
+            try
+            {
+                _userSettingsService.SaveAutoSaveOnClose(value);
+                OnPropertyChanged();
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                StatusMessage = $"Could not save auto-save-on-close setting: {exception.Message}";
+                OnPropertyChanged();
             }
         }
     }
@@ -399,7 +479,17 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        if (!StopDocumentRuntimeActivity())
+        {
+            return;
+        }
+
         _treeDocumentProperties.LoadProperties([]);
+        foreach (var item in RootItems)
+        {
+            UnsubscribeDocumentDataChanges(item);
+        }
+
         RootItems.Clear();
         SelectedTreeItem = null;
         _clipboardItem = null;
@@ -458,11 +548,22 @@ public partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
+            if (!StopDocumentRuntimeActivity())
+            {
+                return;
+            }
+
             _treeDocumentProperties.LoadProperties(document.Properties);
+            foreach (var item in RootItems)
+            {
+                UnsubscribeDocumentDataChanges(item);
+            }
+
             RootItems.Clear();
             foreach (var item in document.Items)
             {
                 RootItems.Add(item);
+                SubscribeDocumentDataChanges(item);
             }
 
             SelectedTreeItem = null;
@@ -488,6 +589,27 @@ public partial class MainWindowViewModel : ObservableObject
         IsDirty = true;
     }
 
+    private void ScheduleAutoSave()
+    {
+        if (!AutoSave || string.IsNullOrWhiteSpace(_currentFilePath))
+        {
+            _autoSaveTimer.Stop();
+            return;
+        }
+
+        _autoSaveTimer.Stop();
+        _autoSaveTimer.Start();
+    }
+
+    private void OnAutoSaveTimerTick(object? sender, EventArgs eventArgs)
+    {
+        _autoSaveTimer.Stop();
+        if (AutoSave && IsDirty && !string.IsNullOrWhiteSpace(_currentFilePath))
+        {
+            SaveDocument(false, isAutoSave: true);
+        }
+    }
+
     private void AddRecentFile(string filePath)
     {
         _userSettingsService.AddRecentFile(filePath);
@@ -510,13 +632,18 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private bool SaveDocument(bool saveAs)
+    private bool SaveDocument(bool saveAs, bool isAutoSave = false) =>
+        TrySaveDocument(saveAs, isAutoSave, out _);
+
+    private bool TrySaveDocument(bool saveAs, bool isAutoSave, out bool saveCanceled)
     {
+        saveCanceled = false;
         try
         {
             var path = _treeDocumentService.Save(RootItems, _currentFilePath, saveAs);
             if (path is null)
             {
+                saveCanceled = true;
                 return false;
             }
 
@@ -524,7 +651,9 @@ public partial class MainWindowViewModel : ObservableObject
             IsDirty = false;
             AddRecentFile(path);
             SaveLastDocumentPath(path);
-            StatusMessage = $"Saved {Path.GetFileName(path)}.";
+            StatusMessage = isAutoSave
+                ? $"Auto-saved {Path.GetFileName(path)}."
+                : $"Saved {Path.GetFileName(path)}.";
             DropStatus = StatusMessage;
             return true;
         }
@@ -537,19 +666,93 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    public bool StopDocumentRuntimeActivity()
+    {
+        var errors = new List<Exception>();
+        foreach (var item in EnumerateTreeItems(RootItems))
+        {
+            try
+            {
+                item.StopRuntimeActivity();
+            }
+            catch (Exception exception) when (
+                exception is IOException or InvalidOperationException or UnauthorizedAccessException)
+            {
+                errors.Add(exception);
+            }
+        }
+
+        if (errors.Count == 0)
+        {
+            return true;
+        }
+
+        StatusMessage = $"Could not stop document activity: {string.Join("; ", errors.Select(error => error.Message))}";
+        DropStatus = StatusMessage;
+        return false;
+    }
+
+    private static IEnumerable<TreeItemNode> EnumerateTreeItems(IEnumerable<TreeItemNode> items)
+    {
+        foreach (var item in items)
+        {
+            yield return item;
+            foreach (var child in EnumerateTreeItems(item.Children))
+            {
+                yield return child;
+            }
+        }
+    }
+
     public bool ConfirmClose()
     {
+        _autoSaveTimer.Stop();
+
         if (!IsDirty)
         {
             return true;
         }
 
-        return _confirmationService.ConfirmSaveChanges() switch
+        if (AutoSaveOnClose)
         {
-            UnsavedChangesDecision.Save => SaveDocument(false),
-            UnsavedChangesDecision.Discard => true,
-            _ => false
-        };
+            if (TrySaveDocument(false, isAutoSave: false, out var saveCanceled))
+            {
+                return true;
+            }
+
+            if (saveCanceled)
+            {
+                return true;
+            }
+
+            ScheduleAutoSave();
+            return false;
+        }
+
+        var decision = _confirmationService.ConfirmSaveChanges();
+        if (decision == UnsavedChangesDecision.Save)
+        {
+            if (TrySaveDocument(false, isAutoSave: false, out var saveCanceled))
+            {
+                return true;
+            }
+
+            if (saveCanceled)
+            {
+                return false;
+            }
+
+            ScheduleAutoSave();
+            return false;
+        }
+
+        if (decision == UnsavedChangesDecision.Discard)
+        {
+            return true;
+        }
+
+        ScheduleAutoSave();
+        return false;
     }
 
     private bool CanAddItemAt(DropPosition position) =>
@@ -868,6 +1071,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         var selectedItemIsBeingDeleted = SelectedTreeItem is { } selected &&
                                          (ReferenceEquals(selected, item) || IsAncestorOf(item, selected));
+        UnsubscribeDocumentDataChanges(item);
         if (item.Parent is not null)
         {
             item.Parent.Children.Remove(item);
@@ -1026,6 +1230,7 @@ public partial class MainWindowViewModel : ObservableObject
             destinationParent.Children.Insert(insertionIndex, item);
         }
 
+        SubscribeDocumentDataChanges(item);
         IsDirty = true;
         if (data.Option is not null || (data.Node is not null && !copy))
         {
@@ -1038,6 +1243,34 @@ public partial class MainWindowViewModel : ObservableObject
         RaiseAddCommandsCanExecuteChanged();
         return true;
     }
+
+    private void SubscribeDocumentDataChanges(TreeItemNode item)
+    {
+        if (item is IDocumentDataChangeNotifier notifier && _documentDataNotifiers.Add(notifier))
+        {
+            notifier.DocumentDataChanged += OnDocumentDataChanged;
+        }
+
+        foreach (var child in item.Children)
+        {
+            SubscribeDocumentDataChanges(child);
+        }
+    }
+
+    private void UnsubscribeDocumentDataChanges(TreeItemNode item)
+    {
+        foreach (var child in item.Children)
+        {
+            UnsubscribeDocumentDataChanges(child);
+        }
+
+        if (item is IDocumentDataChangeNotifier notifier && _documentDataNotifiers.Remove(notifier))
+        {
+            notifier.DocumentDataChanged -= OnDocumentDataChanged;
+        }
+    }
+
+    private void OnDocumentDataChanged(object? sender, EventArgs eventArgs) => IsDirty = true;
 
     public void SetDropStatus(string status) => DropStatus = status;
 

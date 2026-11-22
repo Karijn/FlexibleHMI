@@ -107,6 +107,13 @@ public partial class MainWindow : Window
             {
                 viewModel.ReportStatus($"Could not save window size: {exception.Message}");
             }
+
+            return;
+        }
+
+        if (DataContext is MainWindowViewModel closingRuntimeViewModel && !closingRuntimeViewModel.StopDocumentRuntimeActivity())
+        {
+            e.Cancel = true;
         }
     }
 

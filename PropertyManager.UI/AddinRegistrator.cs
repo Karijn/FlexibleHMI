@@ -19,9 +19,10 @@ public class AddinRegistrator : IAddInRegistrator
     public void RegisterAddIn(IServiceCollection services)
     {
         services.AddSingleton<IVariableHandler, VariableHandler>();
+        services.AddSingleton<IStructTypeRegistry, StructTypeRegistry>();
         services.AddSingleton<ITreeDocumentProperties, VariableHandlerDocumentProperties>();
-        services.AddKeyedTransient<TreeItemOption, PropertyManagerCreator>(PropertyManagerCreator.defaultkind);
-        services.AddKeyedTransient<TreeItemNode, PropertyManagerViewModel>(PropertyManagerCreator.defaultkind);
+        services.AddKeyedTransient<TreeItemOption, PropertyManagerCreator>(PropertyManagerCreator.jsonkey);
+        services.AddKeyedTransient<TreeItemNode, PropertyManagerViewModel>(PropertyManagerCreator.jsonkey);
     }
 
     /// <summary>

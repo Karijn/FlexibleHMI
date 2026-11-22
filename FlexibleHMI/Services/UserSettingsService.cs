@@ -47,6 +47,10 @@ public sealed class UserSettingsService : IUserSettingsService
 
     public bool ShowToolbarText => _settings.ShowToolbarText;
 
+    public bool AutoSave => _settings.AutoSave;
+
+    public bool AutoSaveOnClose => _settings.AutoSaveOnClose;
+
     public IReadOnlyList<string> RecentFiles => _settings.RecentFiles;
 
 
@@ -112,6 +116,18 @@ public sealed class UserSettingsService : IUserSettingsService
         Save();
     }
 
+    public void SaveAutoSave(bool enabled)
+    {
+        _settings.AutoSave = enabled;
+        Save();
+    }
+
+    public void SaveAutoSaveOnClose(bool enabled)
+    {
+        _settings.AutoSaveOnClose = enabled;
+        Save();
+    }
+
     private void Save()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
@@ -140,6 +156,10 @@ public sealed class UserSettingsService : IUserSettingsService
         public string? LastDocumentPath { get; set; }
 
         public bool ShowToolbarText { get; set; } = true;
+
+        public bool AutoSave { get; set; }
+
+        public bool AutoSaveOnClose { get; set; }
 
         public bool IsMainContentFullScreen { get; set; } = false;
         public bool IsLeftPanelExpanded { get; set; } = true;

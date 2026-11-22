@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace FunctionGenerator.UI;
 
@@ -17,13 +18,13 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
         Name = "Function Generator";
-        Image = TreeItemOption.CreateDiamondImage(Colors.Olive);
+        Image = FunctionGeneratorCreator.GetIcon();
         Outputs.Add(CreateOutput());
     }
 
     public ObservableCollection<FunctionOutputViewModel> Outputs { get; } = [];
 
-    public override string Kind => "functionGenerator";
+    public override string Kind => FunctionGeneratorCreator.jsonkey;
 
     public override int MaxChildren => -1;
 
@@ -38,6 +39,14 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
     private void RemoveOutput(FunctionOutputViewModel? output)
     {
         if (output is not null && Outputs.Remove(output))
+        {
+            output.StopGeneration();
+        }
+    }
+
+    public override void StopRuntimeActivity()
+    {
+        foreach (var output in Outputs)
         {
             output.StopGeneration();
         }
@@ -127,7 +136,19 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
 public class FunctionGeneratorCreator : TreeItemOption
 {
     public FunctionGeneratorCreator(IServiceProvider serviceProvider)
-        : base("functionGenerator", "FunctionGenerator", "Function Generation", "Generate waveforms into properties", TreeItemOption.CreateDiamondImage(Colors.Red), serviceProvider)
+        : base(jsonkey, "FunctionGenerator", "Properties", "Generate waveforms into properties", 
+            GetIcon(),
+            serviceProvider)
     {
     }
+
+    internal static string jsonkey = "functiongenerator";
+
+    internal static ImageSource GetIcon()
+    {
+        var uri = new Uri("pack://application:,,,/FunctionGenerator.UI;component/Resources/FunctionGenerator.ico", UriKind.Absolute);
+
+        return new BitmapImage(uri);
+    }
+
 }

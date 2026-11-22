@@ -100,7 +100,7 @@
             </Border>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type local:VuMeterNode}">
+        <!--<DataTemplate DataType="{x:Type local:VuMeterNode}">
             <Border BorderThickness="1"
                     BorderBrush="{Binding Path=IsCurrent, ConverterParameter=Red;Transparent, Converter={StaticResource BoolToColorBrushConverter}}"
                     Background="Transparent"
@@ -110,7 +110,7 @@
                     <Controls:VUMeterControl DataContext="{Binding NeedleAngle}" />
                 </Grid>
             </Border>
-        </DataTemplate>
+        </DataTemplate>-->
 
         <CollectionViewSource x:Key="ListBoxItems" 
                               Source="{Binding Path=AvailableItems}">
@@ -267,6 +267,12 @@
                 <Separator />
                 <MenuItem Header="Load _last document at startup"
                           IsCheckable="True" IsChecked="{Binding AutoLoadLastDocument, Mode=TwoWay}" />
+                <MenuItem Header="Auto _save after changes"
+                          IsCheckable="True" IsChecked="{Binding AutoSave, Mode=TwoWay}"
+                          ToolTip="Save the current document after one second without changes. Save it manually once before auto-save can begin." />
+                <MenuItem Header="Auto-save on _close"
+                          IsCheckable="True" IsChecked="{Binding AutoSaveOnClose, Mode=TwoWay}"
+                          ToolTip="Save changes automatically when closing. Unsaved documents will prompt for a file name." />
                 <MenuItem Header="Show toolbar _text"
                           IsCheckable="True" IsChecked="{Binding ShowToolbarText, Mode=TwoWay}" />
             </MenuItem>

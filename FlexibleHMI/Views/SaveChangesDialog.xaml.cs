@@ -13,5 +13,5 @@ public partial class SaveChangesDialog : Window
 
     private void Discard_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
-    private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
+    private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = null;
 }

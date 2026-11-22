@@ -9,6 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\functiongenerator.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\functiongenerator.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 
