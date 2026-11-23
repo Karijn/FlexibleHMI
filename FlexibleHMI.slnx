@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Calculator/">
+    <File Path="FunctionGenerator.UI/README.md" />
     <Project Path="Calculator.Interfaces/Calculator.Interfaces.csproj" Id="6949bc74-59c3-4821-ab08-51857a72e6c8" />
     <Project Path="Calculator.UI/Calculator.UI.csproj" Id="739e3c77-4425-4713-936b-b166c7b2cdc4" />
     <Project Path="Calculator/Calculator.csproj" Id="99439aa4-40ff-4a75-867f-981c7216b593" />
@@ -31,6 +32,7 @@
     <Project Path="PropertyManager.UI/PropertyManager.UI.csproj" Id="49e5646e-af44-4c10-82fc-ab2cfb8c41cf" />
     <Project Path="PropertyManager/PropertyManager.csproj" />
   </Folder>
+  <Folder Name="/Solution Items/" />
   <Folder Name="/VUMeter/">
     <Project Path="VUMeter.UI/VUMeter.UI.csproj" Id="50866dfb-2e69-4950-84e7-892f77169a74" />
   </Folder>
