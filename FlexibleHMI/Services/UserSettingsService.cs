@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace FlexibleHMI.Services;
 
+/// <summary>Stores application preferences in the current user's local application data.</summary>
 public sealed class UserSettingsService : IUserSettingsService
 {
     private const int MaximumRecentFiles = 10;
@@ -10,6 +11,7 @@ public sealed class UserSettingsService : IUserSettingsService
     private readonly string _settingsPath;
     private readonly UserSettings _settings;
 
+    /// <summary>Loads saved preferences and removes unavailable or duplicate recent-file entries.</summary>
     public UserSettingsService()
     {
         var directory = Path.Combine(
@@ -35,31 +37,46 @@ public sealed class UserSettingsService : IUserSettingsService
             .ToList();
     }
 
+    /// <inheritdoc/>
     public double WindowWidth => IsValidSize(_settings.WindowWidth) ? _settings.WindowWidth : 800;
 
+    /// <inheritdoc/>
     public double WindowHeight => IsValidSize(_settings.WindowHeight) ? _settings.WindowHeight : 450;
 
+    /// <inheritdoc/>
     public AppTheme Theme => Enum.IsDefined(_settings.Theme) ? _settings.Theme : AppTheme.Light;
 
+    /// <inheritdoc/>
     public bool AutoLoadLastDocument => _settings.AutoLoadLastDocument;
 
+    /// <inheritdoc/>
     public string? LastDocumentPath => _settings.LastDocumentPath;
 
+    /// <inheritdoc/>
     public bool ShowToolbarText => _settings.ShowToolbarText;
 
+    /// <inheritdoc/>
     public bool AutoSave => _settings.AutoSave;
 
+    /// <inheritdoc/>
     public bool AutoSaveOnClose => _settings.AutoSaveOnClose;
 
+    /// <inheritdoc/>
     public IReadOnlyList<string> RecentFiles => _settings.RecentFiles;
 
 
+    /// <inheritdoc/>
     public bool IsMainContentFullScreen { get => _settings.IsMainContentFullScreen; set => _settings.IsMainContentFullScreen = value; }
+    /// <inheritdoc/>
     public bool IsLeftPanelExpanded { get => _settings.IsLeftPanelExpanded; set => _settings.IsLeftPanelExpanded = value; }
+    /// <inheritdoc/>
     public double LeftPanelWidth { get => _settings.LeftPanelWidth; set => _settings.LeftPanelWidth = value; }
+    /// <inheritdoc/>
     public bool IsRightPanelExpanded { get => _settings.IsRightPanelExpanded; set => _settings.IsRightPanelExpanded = value; }
+    /// <inheritdoc/>
     public double RightPanelWidth { get => _settings.RightPanelWidth; set => _settings.RightPanelWidth = value; }
 
+    /// <inheritdoc/>
     public void AddRecentFile(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -74,6 +91,7 @@ public sealed class UserSettingsService : IUserSettingsService
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveWindowSize(double width, double height)
     {
         if (!IsValidSize(width) || !IsValidSize(height))
@@ -86,6 +104,7 @@ public sealed class UserSettingsService : IUserSettingsService
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveTheme(AppTheme theme)
     {
         if (!Enum.IsDefined(theme))
@@ -97,12 +116,14 @@ public sealed class UserSettingsService : IUserSettingsService
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveAutoLoadLastDocument(bool enabled)
     {
         _settings.AutoLoadLastDocument = enabled;
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveLastDocumentPath(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -110,18 +131,21 @@ public sealed class UserSettingsService : IUserSettingsService
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveShowToolbarText(bool show)
     {
         _settings.ShowToolbarText = show;
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveAutoSave(bool enabled)
     {
         _settings.AutoSave = enabled;
         Save();
     }
 
+    /// <inheritdoc/>
     public void SaveAutoSaveOnClose(bool enabled)
     {
         _settings.AutoSaveOnClose = enabled;

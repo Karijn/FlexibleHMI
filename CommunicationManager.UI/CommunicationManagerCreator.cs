@@ -5,6 +5,8 @@ using System.Windows.Media.Imaging;
 
 namespace CommunicationManager.UI;
 
+/// <summary>Creates the Communication Manager option for the document tree.</summary>
+/// <param name="serviceProvider">The service provider used by the tree option.</param>
 public sealed class CommunicationManagerCreator(IServiceProvider serviceProvider)
     : TreeItemOption(
         DefaultKind,
@@ -14,6 +16,7 @@ public sealed class CommunicationManagerCreator(IServiceProvider serviceProvider
         GetIcon(), // CreateDiamondImage(Colors.DarkCyan),
         serviceProvider)
 {
+    /// <summary>Gets the document-tree kind identifier registered for the Communication Manager.</summary>
     public const string DefaultKind = "communicationManager";
 
     internal static ImageSource GetIcon()

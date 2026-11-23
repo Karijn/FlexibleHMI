@@ -1,7 +1,12 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// Converts values to requested types and provides helpers for common property-grid conversions.
+/// </summary>
 public class BaseConverter : IConverter
 {
+    /// <summary>
+    /// Attempts to convert the supplied value to the requested type and reports whether conversion succeeded.
+    /// </summary>
     public static bool TryConvert(object? value, out Color color)
     {
         var text = (value as string ?? string.Format("{0}", value)).Nullify();
@@ -92,7 +97,9 @@ public class BaseConverter : IConverter
 
         return false;
     }
-
+    /// <summary>
+    /// Returns the numeric value of a hexadecimal digit, or null when the character is not hexadecimal.
+    /// </summary>
     public static byte? GetHexaNibble(char c)
     {
         if (c >= '0' && c <= '9')
@@ -106,7 +113,9 @@ public class BaseConverter : IConverter
 
         return null;
     }
-
+    /// <summary>
+    /// Converts two hexadecimal digits to a byte, or returns null when either digit is invalid.
+    /// </summary>
     public static byte? GetHexaByte(string? s, int offset)
     {
         if (s == null || (s.Length - offset) < 2)
@@ -114,7 +123,9 @@ public class BaseConverter : IConverter
 
         return GetHexaByte(s[offset], s[offset + 1]);
     }
-
+    /// <summary>
+    /// Converts two hexadecimal digits to a byte, or returns null when either digit is invalid.
+    /// </summary>
     public static byte? GetHexaByte(char hiChar, char loChar)
     {
         var hi = GetHexaNibble(hiChar);
@@ -127,7 +138,9 @@ public class BaseConverter : IConverter
 
         return (byte)(hi.Value * 16 + lo.Value);
     }
-
+    /// <summary>
+    /// Attempts to convert the supplied value to the requested type and reports whether conversion succeeded.
+    /// </summary>
     public static bool TryConvert(string? text, out byte[]? value)
     {
         if (text == null)
@@ -294,7 +307,9 @@ public class BaseConverter : IConverter
 
         return Guid.TryParse(Convert.ToString(input, provider), out value);
     }
-
+    /// <summary>
+    /// Determines whether the specified type represents a numeric value.
+    /// </summary>
     public static bool IsNumberType(Type type)
     {
         if (type == null)
@@ -305,7 +320,9 @@ public class BaseConverter : IConverter
             type == typeof(bool) || type == typeof(double) || type == typeof(float) ||
             type == typeof(decimal) || type == typeof(byte) || type == typeof(sbyte);
     }
-
+    /// <summary>
+    /// Determines whether the input is null or an empty string.
+    /// </summary>
     public static bool IsNullOrEmptyString(object? input)
     {
         if (input == null)
@@ -822,6 +839,7 @@ public class BaseConverter : IConverter
     }
 
     bool IConverter.TryConvert(object? input, Type conversionType, IFormatProvider? provider, out object? value) => TryConvert(input, conversionType, provider, out value);
+    /// <inheritdoc/>
     public static bool TryConvert(object? input, Type conversionType, IFormatProvider? provider, out object? value)
     {
         ArgumentNullException.ThrowIfNull(conversionType);

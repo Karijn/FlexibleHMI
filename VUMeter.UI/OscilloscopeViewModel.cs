@@ -32,7 +32,9 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
     private double? _previousTrigger;
     private bool _capturing;
     private double _captureStart;
-
+    /// <summary>
+    /// Initializes a new instance of OscilloscopeViewModel.
+    /// </summary>
     public OscilloscopeViewModel(IVariableHandler variables)
     {
         _variables = variables ?? throw new ArgumentNullException(nameof(variables));
@@ -45,27 +47,70 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
         RefreshPropertyNames();
         Channels.Add(new OscilloscopeChannel(ChannelChanged));
     }
-
+    /// <summary>
+    /// Occurs when oscilloscope settings change and the host should mark the document as modified.
+    /// </summary>
     public event EventHandler? DocumentDataChanged;
+    /// <summary>
+    /// Occurs when plot data or settings change and the plot should redraw.
+    /// </summary>
     public event EventHandler<EventArgs>? PlotChanged;
+    /// <summary>
+    /// Gets the available numeric variable names for oscilloscope channels.
+    /// </summary>
     public ObservableCollection<string> NumericPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the available Boolean variable names used for conditional legend visibility.
+    /// </summary>
     public ObservableCollection<string> BooleanPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the available color variable names for channel bindings.
+    /// </summary>
     public ObservableCollection<string> ColorPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the editable oscilloscope channels.
+    /// </summary>
     public ObservableCollection<OscilloscopeChannel> Channels { get; } = [];
+    /// <summary>
+    /// Gets the supported colors offered for channels.
+    /// </summary>
     public IReadOnlyList<string> Colors => XYPointViewModel.Colors;
+    /// <summary>
+    /// Gets the start time, in seconds, of the currently displayed sample window.
+    /// </summary>
     public double DisplayStart { get; private set; }
+    /// <summary>
+    /// Gets the duration, in seconds, of the currently displayed sample window.
+    /// </summary>
     public double DisplayDuration { get; private set; } = 2;
+    /// <summary>
+    /// Gets the current oscilloscope configuration or input status.
+    /// </summary>
     public string Status { get => _status; private set => SetProperty(ref _status, value); }
+    /// <summary>
+    /// Gets or sets the manual legend visibility used when no visibility variable is selected.
+    /// </summary>
     public bool ShowLegend { get => _showLegend; set { if (SetProperty(ref _showLegend, value)) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } } }
+    /// <summary>
+    /// Gets or sets the optional Boolean variable name that controls legend visibility.
+    /// </summary>
     public string ShowLegendProperty { get => _showLegendProperty; set { if (SetProperty(ref _showLegendProperty, value ?? "")) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } } }
+    /// <summary>
+    /// Gets whether the legend is visible after applying the optional variable binding.
+    /// </summary>
     public bool EffectiveShowLegend => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Visible;
+    /// <summary>
+    /// Gets the status message for the optional legend visibility binding.
+    /// </summary>
     public string LegendStatus => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Status;
     private void NotifyLegendChanged()
     {
         OnPropertyChanged(nameof(EffectiveShowLegend));
         OnPropertyChanged(nameof(LegendStatus));
     }
-
+    /// <summary>
+    /// Gets or sets the horizontal time scale in seconds per division.
+    /// </summary>
     public double Speed
     {
         get => _speed;
@@ -75,10 +120,25 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
             if (SetProperty(ref _speed, value)) SettingsChanged();
         }
     }
+    /// <summary>
+    /// Gets or sets the variable name bound to the horizontal time scale.
+    /// </summary>
     public string SpeedProperty { get => _speedProperty; set { if (SetProperty(ref _speedProperty, value ?? "")) SettingsChanged(); } }
+    /// <summary>
+    /// Gets or sets whether oscilloscope triggering is enabled.
+    /// </summary>
     public bool TriggerEnabled { get => _triggerEnabled; set { if (SetProperty(ref _triggerEnabled, value)) SettingsChanged(); } }
+    /// <summary>
+    /// Gets or sets the variable name bound to the trigger-enabled setting.
+    /// </summary>
     public string TriggerEnabledProperty { get => _triggerEnabledProperty; set { if (SetProperty(ref _triggerEnabledProperty, value ?? "")) SettingsChanged(); } }
+    /// <summary>
+    /// Gets or sets the channel input used as the trigger source.
+    /// </summary>
     public string TriggerSource { get => _triggerSource; set { if (SetProperty(ref _triggerSource, value ?? "")) SettingsChanged(); } }
+    /// <summary>
+    /// Gets or sets the trigger threshold; the value must be finite and in the supported range.
+    /// </summary>
     public double TriggerLevel
     {
         get => _triggerLevel;
@@ -88,13 +148,33 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
             if (SetProperty(ref _triggerLevel, value)) SettingsChanged();
         }
     }
+    /// <summary>
+    /// Gets or sets the variable name bound to the trigger threshold.
+    /// </summary>
     public string TriggerLevelProperty { get => _triggerLevelProperty; set { if (SetProperty(ref _triggerLevelProperty, value ?? "")) SettingsChanged(); } }
+    /// <summary>
+    /// Gets or sets whether triggering uses a rising edge.
+    /// </summary>
     public bool RisingEdge { get => _risingEdge; set { if (SetProperty(ref _risingEdge, value)) SettingsChanged(); } }
+    /// <summary>
+    /// Gets or sets the variable name bound to the rising-edge setting.
+    /// </summary>
     public string RisingEdgeProperty { get => _risingEdgeProperty; set { if (SetProperty(ref _risingEdgeProperty, value ?? "")) SettingsChanged(); } }
-
+    /// <summary>
+    /// Gets the kind.
+    /// </summary>
     public override string Kind => OscilloscopeCreator.KindName;
+    /// <summary>
+    /// Gets the max children.
+    /// </summary>
     public override int MaxChildren => 0;
+    /// <summary>
+    /// Gets the child rule.
+    /// </summary>
     public override string ChildRule => "No Children here";
+    /// <summary>
+    /// Gets the can accept children.
+    /// </summary>
     public override bool CanAcceptChildren => false;
 
     internal static bool ValidSpeed(double value) => double.IsFinite(value) && value is >= 0.02 and <= 6;
@@ -117,7 +197,7 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
 
     [RelayCommand]
     private void Clear() => ResetSweep();
-
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         var copy = new OscilloscopeViewModel(_variables);
@@ -125,12 +205,16 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
         copy.LoadDocumentData(SaveDocumentData());
         return copy;
     }
-
+    /// <summary>
+    /// Saves document data.
+    /// </summary>
     public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(new Settings(
         Speed, SpeedProperty, TriggerEnabled, TriggerEnabledProperty, TriggerSource, TriggerLevel, TriggerLevelProperty,
         RisingEdge, RisingEdgeProperty, Channels.Select(c => new ChannelSettings(c.InputProperty, c.Color, c.ColorProperty,
             c.Amplitude, c.AmplitudeProperty, c.Offset, c.OffsetProperty)).ToList(), ShowLegend, ShowLegendProperty));
-
+    /// <summary>
+    /// Loads document data.
+    /// </summary>
     public void LoadDocumentData(JsonElement data)
     {
         var settings = data.Deserialize<Settings>() ?? throw new InvalidDataException("Invalid oscilloscope settings.");
@@ -158,7 +242,9 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
                 Offset = saved.Offset, OffsetProperty = saved.OffsetProperty });
         ResetSweep();
     }
-
+    /// <summary>
+    /// Handles the document item detached notification.
+    /// </summary>
     public void OnDocumentItemDetached()
     {
         _detached = true;
@@ -166,7 +252,9 @@ internal sealed partial class OscilloscopeViewModel : TreeItemNode, ITreeItemDoc
         _timer.Stop();
         _variables.VariableChanged -= OnVariableChanged;
     }
-
+    /// <summary>
+    /// Handles the document item reattached notification.
+    /// </summary>
     public void OnDocumentItemReattached()
     {
         if (!_detached) return;

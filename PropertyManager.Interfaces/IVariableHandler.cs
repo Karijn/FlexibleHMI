@@ -22,12 +22,15 @@ public interface IVariableHandler
     IEnumerable<string> GetVariableNames();
 
     /// <summary>
-    /// Gets the names of all stored variables for a specific type.
+    /// Gets the names of all stored variables compatible with a specific type.
     /// </summary>
-    /// <returns>a collection of variable names.</returns>
+    /// <typeparam name="T">The requested variable type.</typeparam>
+    /// <returns>A snapshot of matching variable names.</returns>
     IEnumerable<string> GetVariableNames<T>();
 
-
+    /// <summary>Gets the names and values of variables compatible with a specific type.</summary>
+    /// <typeparam name="T">The requested variable type.</typeparam>
+    /// <returns>A snapshot keyed by variable name.</returns>
     Dictionary<string, T> GetVariables<T>();
 
     /// <summary>

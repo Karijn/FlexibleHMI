@@ -3,8 +3,10 @@ using System.Windows;
 
 namespace FlexibleHMI.Services;
 
+/// <summary>Implements confirmations with the application's owned WPF dialogs.</summary>
 public sealed class MessageBoxConfirmationService : IConfirmationService
 {
+    /// <inheritdoc/>
     public bool Confirm(string message, string title)
     {
         var dialog = new ConfirmationDialog(message, title)
@@ -15,6 +17,7 @@ public sealed class MessageBoxConfirmationService : IConfirmationService
         return dialog.ShowDialog() == true;
     }
 
+    /// <inheritdoc/>
     public UnsavedChangesDecision ConfirmSaveChanges()
     {
         var dialog = new SaveChangesDialog

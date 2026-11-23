@@ -1,15 +1,22 @@
 ﻿using System.Windows.Media.Imaging;
 
 namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Provides a WPF control for choosing a color.
+/// </summary>
 public partial class ColorPicker : UserControl
 {
+    /// <summary>
+    /// Gets or sets the selected color property.
+    /// </summary>
     public static DependencyProperty SelectedColorProperty { get; } =
         DependencyProperty.Register(nameof(SelectedColor), typeof(Color), typeof(ColorPicker),
         new FrameworkPropertyMetadata(Colors.Black, FrameworkPropertyMetadataOptions.AffectsRender, (s, e) => ((ColorPicker)s).OnSelectedColorChanged((Color)e.OldValue, (Color)e.NewValue)));
 
     private int _updating;
-
+    /// <summary>
+    /// Provides the color-picker control and its selection behavior.
+    /// </summary>
     public ColorPicker()
     {
         InitializeComponent();
@@ -17,9 +24,12 @@ public partial class ColorPicker : UserControl
         UpdateHueImage();
         Dispatcher.BeginInvoke(UpdateSelectedColor);
     }
-
+    /// <summary>
+    /// Gets or sets the selected color.
+    /// </summary>
     public Color SelectedColor { get => (Color)GetValue(SelectedColorProperty); set => SetValue(SelectedColorProperty, value); }
 
+    /// <inheritdoc/>
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
@@ -27,6 +37,9 @@ public partial class ColorPicker : UserControl
         UpdateHueImage();
     }
 
+    /// <summary>
+    /// Provides the on selected color changed extension point for derived controls.
+    /// </summary>
     protected virtual void OnSelectedColorChanged(Color oldValue, Color newValue) => WithoutReentrency(UpdateSelectedColor);
 
     private void UpdateSelectedColor()

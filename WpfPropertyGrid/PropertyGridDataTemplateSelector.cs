@@ -1,12 +1,24 @@
 ﻿namespace WpfPropertyGrid;
 
+/// <summary>
+/// Selects a data template for a property-grid item from registered templates.
+/// </summary>
 [ContentProperty("DataTemplates")]
 public class PropertyGridDataTemplateSelector : DataTemplateSelector
 {
+    /// <summary>
+    /// Gets the templates available to the selector.
+    /// </summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
     public ObservableCollection<PropertyGridDataTemplate> DataTemplates { get; } = [];
+    /// <summary>
+    /// Gets the property grid associated with the selector, when available.
+    /// </summary>
     public PropertyGrid? PropertyGrid { get; private set; }
 
+    /// <summary>
+    /// Determines whether the template metadata matches the property before type matching.
+    /// </summary>
     protected virtual bool Filter(PropertyGridDataTemplate template, PropertyGridProperty property)
     {
         ArgumentNullException.ThrowIfNull(template);
@@ -41,7 +53,9 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
 
         return false;
     }
-
+    /// <summary>
+    /// Determines whether a registered template applies to the supplied property type.
+    /// </summary>
     public virtual bool IsAssignableFrom(Type type, Type propertyType, PropertyGridDataTemplate template, PropertyGridProperty property)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -80,7 +94,7 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
 
         return false;
     }
-
+    /// <inheritdoc/>
     public override DataTemplate? SelectTemplate(object item, DependencyObject container)
     {
         ArgumentNullException.ThrowIfNull(container);

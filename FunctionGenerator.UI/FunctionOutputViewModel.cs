@@ -5,6 +5,7 @@ using System.Diagnostics;
 
 namespace FunctionGenerator.UI;
 
+/// <summary>Configures and controls one continuously generated waveform output.</summary>
 public partial class FunctionOutputViewModel : ObservableObject
 {
     private readonly IVariableHandler _variableHandler;
@@ -13,6 +14,11 @@ public partial class FunctionOutputViewModel : ObservableObject
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _generationTask;
 
+    /// <summary>Creates an output configuration and associates it with a live-property handler.</summary>
+    /// <param name="variableHandler">Handler used to read bound inputs and write generated samples.</param>
+    /// <param name="propertyName">Initial destination property name.</param>
+    /// <param name="isControlProperty">Optional predicate identifying properties reserved for start/stop control.</param>
+    /// <param name="controlChanged">Optional callback invoked when the per-output running-property name changes.</param>
     public FunctionOutputViewModel(IVariableHandler variableHandler, string propertyName, Func<string, bool>? isControlProperty = null, Action<FunctionOutputViewModel>? controlChanged = null)
     {
         _variableHandler = variableHandler;
@@ -22,48 +28,63 @@ public partial class FunctionOutputViewModel : ObservableObject
         Waveforms = Enum.GetValues<SignalWaveform>();
     }
 
+    /// <summary>Gets the waveform values offered by the view.</summary>
     public IReadOnlyList<SignalWaveform> Waveforms { get; }
     internal string? ActiveOutputPropertyName { get; private set; }
 
+    /// <summary>Gets or sets the property receiving generated samples.</summary>
     [ObservableProperty]
     private string _propertyName = string.Empty;
 
+    /// <summary>Gets or sets the waveform shape or noise distribution.</summary>
     [ObservableProperty]
     private SignalWaveform _waveform = SignalWaveform.Sinus;
 
+    /// <summary>Gets or sets the fallback frequency in hertz.</summary>
     [ObservableProperty]
     private double _frequency = 1;
 
+    /// <summary>Gets or sets the optional numeric property supplying the live frequency.</summary>
     [ObservableProperty]
     private string _frequencyPropertyName = string.Empty;
 
+    /// <summary>Gets or sets the fallback amplitude.</summary>
     [ObservableProperty]
     private double _amplitude = 1;
 
+    /// <summary>Gets or sets the optional numeric property supplying the live amplitude.</summary>
     [ObservableProperty]
     private string _amplitudePropertyName = string.Empty;
 
+    /// <summary>Gets or sets the fallback offset added to generated samples.</summary>
     [ObservableProperty]
     private double _offset;
 
+    /// <summary>Gets or sets the optional numeric property supplying the live offset.</summary>
     [ObservableProperty]
     private string _offsetPropertyName = string.Empty;
 
+    /// <summary>Gets or sets the fallback delay between output samples, in milliseconds.</summary>
     [ObservableProperty]
     private int _updateIntervalMilliseconds = 50;
 
+    /// <summary>Gets or sets the optional numeric property supplying the live sample interval.</summary>
     [ObservableProperty]
     private string _updateIntervalPropertyName = string.Empty;
 
+    /// <summary>Gets whether sample generation is currently active.</summary>
     [ObservableProperty]
     private bool _isRunning;
 
+    /// <summary>Gets the current generation state or validation/runtime error.</summary>
     [ObservableProperty]
     private string _status = "Stopped";
 
+    /// <summary>Gets or sets the optional Boolean property controlling this output.</summary>
     [ObservableProperty]
     private string _runningPropertyName = string.Empty;
 
+    /// <summary>Gets the status of the per-output Boolean control binding.</summary>
     [ObservableProperty]
     private string _runningControlStatus = string.Empty;
 
@@ -172,6 +193,8 @@ public partial class FunctionOutputViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(IsRunning))]
     private void Stop() => StopGeneration();
 
+    /// <summary>Starts sample generation if this output is stopped and its settings are valid.</summary>
+    /// <remarks>Validation and runtime failures are reported through <see cref="Status"/>.</remarks>
     public void StartGeneration()
     {
         if (CanStart())
@@ -180,6 +203,7 @@ public partial class FunctionOutputViewModel : ObservableObject
         }
     }
 
+    /// <summary>Cancels sample generation and waits for the generation task to finish.</summary>
     public void StopGeneration()
     {
         var cancellationTokenSource = _cancellationTokenSource;
@@ -217,6 +241,11 @@ public partial class FunctionOutputViewModel : ObservableObject
         }
     }
 
+    /// <summary>Creates an output with matching configuration and the supplied property/control services.</summary>
+    /// <param name="variableHandler">Handler for the copied output.</param>
+    /// <param name="isControlProperty">Optional predicate identifying reserved control properties.</param>
+    /// <param name="controlChanged">Optional callback for changes to the running-property binding.</param>
+    /// <returns>A stopped output with the same waveform and bound-input settings.</returns>
     public FunctionOutputViewModel Copy(IVariableHandler variableHandler, Func<string, bool>? isControlProperty = null, Action<FunctionOutputViewModel>? controlChanged = null) => new(variableHandler, PropertyName, isControlProperty, controlChanged)
     {
         RunningPropertyName = RunningPropertyName,

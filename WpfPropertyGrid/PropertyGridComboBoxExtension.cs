@@ -1,11 +1,18 @@
 namespace WpfPropertyGrid;
-
+/// <summary>
+/// Creates combo-box items from a binding and property-grid enum metadata.
+/// </summary>
 public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
 {
+    /// <summary>
+    /// Gets or sets the default zero name.
+    /// </summary>
     public string DefaultZeroName { get; set; } = "None";
-
+    /// <summary>
+    /// Creates a property-grid item for a combo-box choice.
+    /// </summary>
     public virtual PropertyGridItem CreateItem() => ActivatorService.CreateInstance<PropertyGridItem>() ?? throw new NotSupportedException();
-
+    /// <inheritdoc/>
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
         if (binding == null)
@@ -43,7 +50,9 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
         }
         return -1;
     }
-
+    /// <summary>
+    /// Converts an enum editor value to the corresponding enum object.
+    /// </summary>
     public static object? EnumToObject(PropertyGridProperty property, object? value)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -66,7 +75,9 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
 
         return EnumToObject(options, property.PropertyType, value);
     }
-
+    /// <summary>
+    /// Converts an enum editor value to the corresponding enum object.
+    /// </summary>
     public static object? EnumToObject(PropertyGridOptionsAttribute options, Type propertyType, object? value)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -167,7 +178,9 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
         }
         return enums;
     }
-
+    /// <summary>
+    /// Converts an enum value to its unsigned integral representation.
+    /// </summary>
     public static ulong EnumToUInt64(PropertyGridProperty property, object? value)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -217,7 +230,9 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
         }
         return ul;
     }
-
+    /// <summary>
+    /// Gets the highest bit position to include when expanding a flags enum.
+    /// </summary>
     public static int GetEnumMaxPower(PropertyGridOptionsAttribute options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -237,7 +252,9 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
         }
         return false;
     }
-
+    /// <summary>
+    /// Builds the editor items available for the specified property.
+    /// </summary>
     public virtual IEnumerable BuildItems(PropertyGridProperty property, Type targetType, object? parameter, CultureInfo culture)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -480,6 +497,9 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
         return items;
     }
 
+    /// <summary>
+    /// Determines whether an enum field is shown and returns its display name.
+    /// </summary>
     protected virtual bool ShowEnumField(PropertyGridProperty property, Type type, string name, out string? displayName)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -506,10 +526,16 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
         return true;
     }
 
+    /// <summary>
+    /// Converts property-grid enum values to the combo-box items created by this extension.
+    /// </summary>
     protected class Converter(PropertyGridComboBoxExtension extension) : IValueConverter
     {
+        /// <summary>
+        /// Gets the markup extension that created this converter.
+        /// </summary>
         public PropertyGridComboBoxExtension Extension { get; } = extension;
-
+        /// <inheritdoc/>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is PropertyGridProperty property)
@@ -517,7 +543,7 @@ public class PropertyGridComboBoxExtension(Binding binding) : MarkupExtension
 
             return value;
         }
-
+        /// <inheritdoc/>
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => value;
     }
 }

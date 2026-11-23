@@ -1,11 +1,15 @@
 ﻿namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Evaluates a property path against an object for WPF data-binding integration.
+/// </summary>
 public static class DataBindingEvaluator
 {
     private static readonly char[] expressionPartSeparator = ['.'];
     private static readonly char[] indexExprEndChars = [']', ')'];
     private static readonly char[] indexExprStartChars = ['[', '('];
-
+    /// <summary>
+    /// Evaluates a formatted binding expression against the source object.
+    /// </summary>
     public static string EvalFormat(object? container, string expression, IFormatProvider? provider, string? format = null, bool throwOnError = true)
     {
         format ??= "{0}";
@@ -14,7 +18,9 @@ public static class DataBindingEvaluator
 
         return string.Format(provider, format, Eval(container, expression));
     }
-
+    /// <summary>
+    /// Evaluates the specified binding path against the source object.
+    /// </summary>
     public static object? Eval(object? container, string expression, bool throwOnError = true)
     {
         ArgumentNullException.ThrowIfNull(expression);
@@ -46,7 +52,9 @@ public static class DataBindingEvaluator
         }
         return propertyValue;
     }
-
+    /// <summary>
+    /// Gets a property value by name from the supplied object.
+    /// </summary>
     public static object? GetPropertyValue(object? container, string? propName, bool throwOnError = true)
     {
         ArgumentNullException.ThrowIfNull(container);
@@ -65,7 +73,9 @@ public static class DataBindingEvaluator
         }
         return descriptor.GetValue(container);
     }
-
+    /// <summary>
+    /// Gets a value from an indexed property using the supplied index.
+    /// </summary>
     public static object? GetIndexedPropertyValue(object? container, string? expression, bool throwOnError = true)
     {
         ArgumentNullException.ThrowIfNull(container);

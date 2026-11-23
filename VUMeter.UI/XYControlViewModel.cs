@@ -20,7 +20,9 @@ internal sealed partial class XYControlViewModel : TreeItemNode, ITreeItemDocume
     private double _maximumY = 100;
     private bool _showLegend;
     private string _showLegendProperty = "";
-
+    /// <summary>
+    /// Initializes a new instance of XYControlViewModel.
+    /// </summary>
     public XYControlViewModel(IVariableHandler variables)
     {
         _variables = variables ?? throw new ArgumentNullException(nameof(variables));
@@ -31,35 +33,95 @@ internal sealed partial class XYControlViewModel : TreeItemNode, ITreeItemDocume
         RefreshPropertyNames();
         Points.Add(new XYPointViewModel(OnPointChanged));
     }
-
+    /// <summary>
+    /// Occurs when plot settings change and the host should mark the document as modified.
+    /// </summary>
     public event EventHandler? DocumentDataChanged;
+    /// <summary>
+    /// Occurs when point positions or plot settings change and the plot should redraw.
+    /// </summary>
     public event EventHandler<EventArgs>? PlotChanged;
+    /// <summary>
+    /// Gets the available numeric variable names for point coordinates.
+    /// </summary>
     public ObservableCollection<string> NumericPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the available Boolean variable names used for conditional visibility settings.
+    /// </summary>
     public ObservableCollection<string> BooleanPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the available color variable names for point bindings.
+    /// </summary>
     public ObservableCollection<string> ColorPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the editable XY points.
+    /// </summary>
     public ObservableCollection<XYPointViewModel> Points { get; } = [];
+    /// <summary>
+    /// Gets the supported colors offered for XY points.
+    /// </summary>
     public IReadOnlyList<string> PointColors => XYPointViewModel.Colors;
+    /// <summary>
+    /// Gets or sets the manual legend visibility used when no visibility variable is selected.
+    /// </summary>
     public bool ShowLegend { get => _showLegend; set { if (SetProperty(ref _showLegend, value)) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } } }
+    /// <summary>
+    /// Gets or sets the optional Boolean variable name that controls legend visibility.
+    /// </summary>
     public string ShowLegendProperty { get => _showLegendProperty; set { if (SetProperty(ref _showLegendProperty, value ?? "")) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } } }
+    /// <summary>
+    /// Gets whether the legend is visible after applying the optional variable binding.
+    /// </summary>
     public bool EffectiveShowLegend => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Visible;
+    /// <summary>
+    /// Gets the status message for the optional legend visibility binding.
+    /// </summary>
     public string LegendStatus => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Status;
     private void NotifyLegendChanged()
     {
         OnPropertyChanged(nameof(EffectiveShowLegend));
         OnPropertyChanged(nameof(LegendStatus));
     }
-
+    /// <summary>
+    /// Gets or sets the minimum X coordinate shown by the plot.
+    /// </summary>
     public double MinimumX { get => _minimumX; set => SetBound(ref _minimumX, value, nameof(MinimumX)); }
+    /// <summary>
+    /// Gets or sets the maximum X coordinate shown by the plot.
+    /// </summary>
     public double MaximumX { get => _maximumX; set => SetBound(ref _maximumX, value, nameof(MaximumX)); }
+    /// <summary>
+    /// Gets or sets the minimum Y coordinate shown by the plot.
+    /// </summary>
     public double MinimumY { get => _minimumY; set => SetBound(ref _minimumY, value, nameof(MinimumY)); }
+    /// <summary>
+    /// Gets or sets the maximum Y coordinate shown by the plot.
+    /// </summary>
     public double MaximumY { get => _maximumY; set => SetBound(ref _maximumY, value, nameof(MaximumY)); }
+    /// <summary>
+    /// Gets whether both plot axes have finite, increasing bounds.
+    /// </summary>
     public bool HasValidBounds => MinimumX < MaximumX && MinimumY < MaximumY &&
         double.IsFinite(MaximumX - MinimumX) && double.IsFinite(MaximumY - MinimumY);
+    /// <summary>
+    /// Gets an explanation when the configured plot bounds are invalid.
+    /// </summary>
     public string BoundsStatus => HasValidBounds ? "" : "Each axis minimum must be less than its maximum and the range must be finite.";
-
+    /// <summary>
+    /// Gets the kind.
+    /// </summary>
     public override string Kind => XYControlCreator.KindName;
+    /// <summary>
+    /// Gets the max children.
+    /// </summary>
     public override int MaxChildren => 0;
+    /// <summary>
+    /// Gets the child rule.
+    /// </summary>
     public override string ChildRule => "No Children here";
+    /// <summary>
+    /// Gets the can accept children.
+    /// </summary>
     public override bool CanAcceptChildren => false;
 
     [RelayCommand]
@@ -91,7 +153,7 @@ internal sealed partial class XYControlViewModel : TreeItemNode, ITreeItemDocume
         }
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
-
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         var copy = new XYControlViewModel(_variables);
@@ -99,12 +161,16 @@ internal sealed partial class XYControlViewModel : TreeItemNode, ITreeItemDocume
         copy.LoadDocumentData(SaveDocumentData());
         return copy;
     }
-
+    /// <summary>
+    /// Saves document data.
+    /// </summary>
     public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(new Settings(
         MinimumX, MaximumX, MinimumY, MaximumY,
         Points.Select(point => new PointSettings(point.XProperty, point.YProperty, point.Color, point.Size, point.ShowTrail,
             point.TrailLength, point.ColorProperty, point.SizeProperty, point.TrailProperty, point.TrailLengthProperty)).ToList(), ShowLegend, ShowLegendProperty));
-
+    /// <summary>
+    /// Loads document data.
+    /// </summary>
     public void LoadDocumentData(JsonElement data)
     {
         var settings = data.Deserialize<Settings>() ?? throw new InvalidDataException("Invalid XY control settings.");
@@ -146,14 +212,18 @@ internal sealed partial class XYControlViewModel : TreeItemNode, ITreeItemDocume
         }
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
-
+    /// <summary>
+    /// Handles the document item detached notification.
+    /// </summary>
     public void OnDocumentItemDetached()
     {
         _detached = true;
         Interlocked.Increment(ref _subscriptionVersion);
         _variables.VariableChanged -= OnVariableChanged;
     }
-
+    /// <summary>
+    /// Handles the document item reattached notification.
+    /// </summary>
     public void OnDocumentItemReattached()
     {
         if (_detached)

@@ -6,9 +6,8 @@ namespace PropertyManager;
 /// Stores variables of different types and publishes changes to subscribers.
 /// </summary>
 /// <remarks>
-/// Values are protected by a synchronization lock. Array values are copied
-/// when read or written so changes are published through <see cref="VariableChanged"/>
-/// instead of being made silently by external callers.
+/// Individual store operations are protected by a synchronization lock. The array-specific
+/// helpers copy CLR arrays when reading and writing; generic Set and Get do not copy values.
 /// </remarks>
 public sealed class VariableHandler : IVariableHandler
 {
@@ -20,6 +19,7 @@ public sealed class VariableHandler : IVariableHandler
     /// </summary>
     public event EventHandler<VariableChanged>? VariableChanged;
 
+    /// <summary>Creates an empty variable store.</summary>
     public VariableHandler()
     {
         //Set("Test1", 10.1);
@@ -39,6 +39,7 @@ public sealed class VariableHandler : IVariableHandler
         }
     }
 
+    /// <inheritdoc />
     public IEnumerable<string> GetVariableNames<T>()
     {
         lock (_syncRoot)
@@ -55,6 +56,7 @@ public sealed class VariableHandler : IVariableHandler
         }
     }
 
+    /// <inheritdoc />
     public Dictionary<string, T> GetVariables<T>()
     {
         lock (_syncRoot)

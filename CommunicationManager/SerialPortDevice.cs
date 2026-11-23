@@ -4,6 +4,7 @@ using System.Text;
 
 namespace CommunicationManager;
 
+/// <summary>Implements line-oriented communication using a system serial port.</summary>
 public sealed class SerialPortDevice : ISerialPortDevice
 {
     private const int MaximumLineLength = 4096;
@@ -14,16 +15,21 @@ public sealed class SerialPortDevice : ISerialPortDevice
     private bool _discardingLine;
     private bool _disposed;
 
+    /// <inheritdoc />
     public event EventHandler<CommunicationMessageEventArgs>? MessageReceived;
 
+    /// <inheritdoc />
     public event EventHandler<CommunicationMessageEventArgs>? MessageSent;
 
+    /// <inheritdoc />
     public event EventHandler<CommunicationErrorEventArgs>? ErrorOccurred;
 
+    /// <inheritdoc />
     public IReadOnlyList<string> GetPortNames() => SerialPort.GetPortNames()
         .OrderBy(portName => portName, StringComparer.OrdinalIgnoreCase)
         .ToArray();
 
+    /// <inheritdoc />
     public void Open(string portName, int baudRate)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -61,6 +67,7 @@ public sealed class SerialPortDevice : ISerialPortDevice
         }
     }
 
+    /// <inheritdoc />
     public void WriteLine(string message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -84,6 +91,7 @@ public sealed class SerialPortDevice : ISerialPortDevice
         MessageSent?.Invoke(this, new CommunicationMessageEventArgs(message));
     }
 
+    /// <inheritdoc />
     public void Close()
     {
         lock (_portLock)
@@ -103,6 +111,7 @@ public sealed class SerialPortDevice : ISerialPortDevice
         }
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposed)

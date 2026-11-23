@@ -4,7 +4,7 @@ Flexible HMI is a plugin-based application for building documents with live prop
 
 ## Properties
 
-Properties are named values shared by the calculator, function generator, communication manager, and controls. In **Property Manager**, select **New property**, enter a name, choose a type and value, and select **Save property**. Select an existing property to edit or delete it. Property names are case-sensitive and must be unique. Values and struct definitions are saved with the document.
+Properties are named values shared by the calculator, function generator, communication manager, and controls. In **Property Manager**, select **New property**, enter a name, choose a type and value, and select **Save property**. Select an existing property to edit or delete it. Property names are case-sensitive and must be unique. Values and struct definitions are saved with the document. For detailed instructions and add-in integration, see the [Property Manager README](PropertyManager/README.md).
 
 | Type | Value and example |
 | --- | --- |

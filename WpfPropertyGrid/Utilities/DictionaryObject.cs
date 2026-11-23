@@ -1,7 +1,12 @@
 ﻿namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Provides dictionary-backed properties, change notifications, validation, and cloning for derived objects.
+/// </summary>
 public abstract class DictionaryObject : INotifyPropertyChanged, INotifyPropertyChanging, IDataErrorInfo, INotifyDataErrorInfo
 {
+    /// <summary>
+    /// Initializes change and validation notifications for the dictionary-backed object.
+    /// </summary>
     protected DictionaryObject()
     {
         DictionaryObjectRaiseOnPropertyChanging = true;
@@ -9,21 +14,56 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
         DictionaryObjectRaiseOnErrorsChanged = true;
     }
 
+    /// <summary>
+    /// Provides the new extension point for derived controls.
+    /// </summary>
     protected virtual ConcurrentDictionary<string, DictionaryObjectProperty?> DictionaryObjectProperties { get; } = new(StringComparer.Ordinal); // properties are case sensitive in .NET
-
+    /// <summary>
+    /// Occurs when property changing.
+    /// </summary>
     public event PropertyChangingEventHandler? PropertyChanging;
+    /// <summary>
+    /// Occurs when property changed.
+    /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
+    /// <summary>
+    /// Occurs when errors changed.
+    /// </summary>
     public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+    /// <summary>
+    /// Occurs when property rollback.
+    /// </summary>
     public event EventHandler<DictionaryObjectPropertyRollbackEventArgs>? PropertyRollback;
 
+    /// <summary>
+    /// Gets or sets whether property-changing notifications are raised.
+    /// </summary>
     protected virtual bool DictionaryObjectRaiseOnPropertyChanging { get; set; }
+    /// <summary>
+    /// Gets or sets whether property-changed notifications are raised.
+    /// </summary>
     protected virtual bool DictionaryObjectRaiseOnPropertyChanged { get; set; }
+    /// <summary>
+    /// Gets or sets whether validation-error notifications are raised.
+    /// </summary>
     protected virtual bool DictionaryObjectRaiseOnErrorsChanged { get; set; }
 
+    /// <summary>
+    /// Gets the combined validation message for the specified property.
+    /// </summary>
     protected string? DictionaryObjectError => DictionaryObjectGetError(null);
+    /// <summary>
+    /// Gets validation errors for the specified property.
+    /// </summary>
     protected bool DictionaryObjectHasErrors => DictionaryObjectGetErrors(null)?.OfType<object>().Any() == true;
+    /// <summary>
+    /// Gets whether the object has no validation errors.
+    /// </summary>
     protected bool DictionaryObjectHasNoError => !DictionaryObjectHasErrors;
 
+    /// <summary>
+    /// Gets the combined validation message for the specified property.
+    /// </summary>
     protected virtual string? DictionaryObjectGetError(string? propertyName)
     {
         var errors = DictionaryObjectGetErrors(propertyName);
@@ -34,8 +74,14 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
         return !string.IsNullOrEmpty(error) ? error : null;
     }
 
+    /// <summary>
+    /// Gets validation errors for the specified property.
+    /// </summary>
     protected virtual IEnumerable DictionaryObjectGetErrors(string? propertyName) => Enumerable.Empty<object>();
 
+    /// <summary>
+    /// Raises ErrorsChanged and updates the aggregate error-state properties.
+    /// </summary>
     protected virtual void OnErrorsChanged(string? name)
     {
         OnErrorsChanged(this, new DataErrorsChangedEventArgs(name));
@@ -43,22 +89,44 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
         OnPropertyChanged(nameof(DictionaryObjectHasNoError));
     }
 
+    /// <summary>
+    /// Raises PropertyChanged for the specified property or event arguments.
+    /// </summary>
     protected void OnPropertyChanged([CallerMemberName] string? name = null) => OnPropertyChanged(this, new PropertyChangedEventArgs(name));
 
+    /// <summary>
+    /// Raises ErrorsChanged and updates the aggregate error-state properties.
+    /// </summary>
     protected virtual void OnErrorsChanged(object sender, DataErrorsChangedEventArgs e) => ErrorsChanged?.Invoke(sender, e);
+    /// <summary>
+    /// Raises PropertyRollback after a property update is reverted.
+    /// </summary>
     protected virtual void OnPropertyRollback(object sender, DictionaryObjectPropertyRollbackEventArgs e) => PropertyRollback?.Invoke(sender, e);
+    /// <summary>
+    /// Raises PropertyChanging before a property value is updated.
+    /// </summary>
     protected virtual void OnPropertyChanging(object sender, PropertyChangingEventArgs e) => PropertyChanging?.Invoke(sender, e);
+    /// <summary>
+    /// Raises PropertyChanged for the specified property or event arguments.
+    /// </summary>
     protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs e) => PropertyChanged?.Invoke(sender, e);
 
+    /// <summary>
+    /// Creates a new instance of the runtime object type for cloning.
+    /// </summary>
     protected virtual DictionaryObject DictionaryObjectCreateInstance() => (DictionaryObject)Activator.CreateInstance(GetType())!;
-
+    /// <summary>
+    /// Creates a clone of this object and copies its dictionary-backed properties.
+    /// </summary>
     public virtual object Clone()
     {
         var clone = DictionaryObjectCreateInstance();
         clone.CopyFrom(this);
         return clone;
     }
-
+    /// <summary>
+    /// Copies dictionary-backed property values from another object.
+    /// </summary>
     public virtual void CopyFrom(DictionaryObject from)
     {
         ArgumentNullException.ThrowIfNull(from);
@@ -68,8 +136,17 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
         }
     }
 
+    /// <summary>
+    /// Gets a string property value, converting empty text to null.
+    /// </summary>
     protected string? DictionaryObjectGetNullifiedPropertyValue(string? defaultValue = null, [CallerMemberName] string? name = null) => DictionaryObjectGetPropertyValue(defaultValue, name)?.Nullify();
+    /// <summary>
+    /// Gets a dictionary-backed value, converting it to the requested type when needed.
+    /// </summary>
     protected T? DictionaryObjectGetPropertyValue<T>([CallerMemberName] string? name = null) => DictionaryObjectGetPropertyValue<T>(default, name);
+    /// <summary>
+    /// Gets a dictionary-backed value, converting it to the requested type when needed.
+    /// </summary>
     protected virtual T? DictionaryObjectGetPropertyValue<T>(T? defaultValue, [CallerMemberName] string? name = null)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -83,6 +160,9 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
         return value;
     }
 
+    /// <summary>
+    /// Determines whether two property values are equal.
+    /// </summary>
     protected virtual bool DictionaryObjectAreValuesEqual(object? value1, object? value2)
     {
         if (value1 == null)
@@ -96,10 +176,15 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
 
     private class ObjectComparer(DictionaryObject obj) : IEqualityComparer<object>
     {
+        /// <inheritdoc/>
         public new bool Equals(object? x, object? y) => obj.DictionaryObjectAreValuesEqual(x, y);
+        /// <inheritdoc/>
         public int GetHashCode(object obj) => (obj?.GetHashCode()).GetValueOrDefault();
     }
 
+    /// <summary>
+    /// Determines whether two validation-error sequences contain the same errors.
+    /// </summary>
     protected virtual bool DictionaryObjectAreErrorsEqual(IEnumerable? errors1, IEnumerable? errors2)
     {
         if (errors1 == null && errors2 == null)
@@ -134,12 +219,30 @@ public abstract class DictionaryObject : INotifyPropertyChanged, INotifyProperty
         return dic.Values.All(c => c == 0);
     }
 
+    /// <summary>
+    /// Allows a derived type to customize a property before equality testing and notifications.
+    /// </summary>
     protected virtual DictionaryObjectProperty? DictionaryObjectUpdatingProperty(DictionaryObjectPropertySetOptions options, string name, DictionaryObjectProperty? oldProperty, DictionaryObjectProperty newProperty) => null;
+    /// <summary>
+    /// Allows a derived type to customize a property after a value change is accepted.
+    /// </summary>
     protected virtual DictionaryObjectProperty? DictionaryObjectUpdatedProperty(DictionaryObjectPropertySetOptions options, string name, DictionaryObjectProperty? oldProperty, DictionaryObjectProperty newProperty) => null;
+    /// <summary>
+    /// Allows a derived type to customize the property restored after a validation failure.
+    /// </summary>
     protected virtual DictionaryObjectProperty? DictionaryObjectRollbackProperty(DictionaryObjectPropertySetOptions options, string name, DictionaryObjectProperty? oldProperty, DictionaryObjectProperty newProperty) => null;
+    /// <summary>
+    /// Creates the storage object used for a dictionary-backed property.
+    /// </summary>
     protected virtual DictionaryObjectProperty? DictionaryObjectCreateProperty() => new();
 
+    /// <summary>
+    /// Sets a dictionary-backed property and applies the specified notifications and rollback options.
+    /// </summary>
     protected bool DictionaryObjectSetPropertyValue(object? value, [CallerMemberName] string? name = null) => DictionaryObjectSetPropertyValue(value, DictionaryObjectPropertySetOptions.None, name);
+    /// <summary>
+    /// Sets a dictionary-backed property and applies the specified notifications and rollback options.
+    /// </summary>
     protected virtual bool DictionaryObjectSetPropertyValue(object? value, DictionaryObjectPropertySetOptions options, [CallerMemberName] string? name = null)
     {
         ArgumentNullException.ThrowIfNull(name);

@@ -3,16 +3,20 @@ using System.IO;
 
 namespace FlexibleHMI.Services;
 
+/// <summary>Provides no document properties and rejects documents containing any.</summary>
 public sealed class EmptyTreeDocumentProperties : ITreeDocumentProperties
 {
+    /// <inheritdoc/>
     public event EventHandler? Changed
     {
         add { }
         remove { }
     }
 
+    /// <inheritdoc/>
     public IReadOnlyList<TreeDocumentProperty> GetProperties() => Array.Empty<TreeDocumentProperty>();
 
+    /// <inheritdoc/>
     public void LoadProperties(IReadOnlyList<TreeDocumentProperty> properties)
     {
         ArgumentNullException.ThrowIfNull(properties);

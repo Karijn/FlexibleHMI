@@ -1,7 +1,12 @@
 ﻿namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Provides helpers for configuring WPF binding trace output.
+/// </summary>
 public static class WpfTracing
 {
+    /// <summary>
+    /// Enables or disables WPF binding trace output.
+    /// </summary>
     public static void Enable(SourceLevels levels = SourceLevels.Warning, TraceListener? listener = null)
     {
         listener ??= new DefaultTraceListener();

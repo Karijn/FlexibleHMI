@@ -18,6 +18,7 @@ namespace PropertyManager.UI
     /// </summary>
     public partial class PropertyManagerView : UserControl
     {
+        /// <summary>Creates and initializes the Property Manager view.</summary>
         public PropertyManagerView()
         {
             InitializeComponent();

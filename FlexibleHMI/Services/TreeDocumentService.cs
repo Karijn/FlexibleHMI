@@ -5,6 +5,7 @@ using System.Text.Json;
 
 namespace FlexibleHMI.Services;
 
+/// <summary>Persists HMI trees and document properties in versioned JSON files.</summary>
 public sealed class TreeDocumentService : ITreeDocumentService
 {
     private const int CurrentDocumentVersion = 1;
@@ -13,6 +14,9 @@ public sealed class TreeDocumentService : ITreeDocumentService
 
     private readonly ITreeDocumentProperties _treeDocumentProperties;
 
+    /// <summary>Initializes a document service using the registered item creators and property provider.</summary>
+    /// <param name="creators">The creators keyed by tree-item kind.</param>
+    /// <param name="treeDocumentProperties">The provider for document-level properties.</param>
     public TreeDocumentService(
         IDictionary<string, TreeItemOption> creators,
         ITreeDocumentProperties treeDocumentProperties)
@@ -28,6 +32,7 @@ public sealed class TreeDocumentService : ITreeDocumentService
     };
     private static IDictionary<string, TreeItemOption> _creators;
 
+    /// <inheritdoc/>
     public string? Save(IReadOnlyCollection<TreeItemNode> items, string? currentFilePath, bool saveAs)
     {
         var path = !saveAs && !string.IsNullOrWhiteSpace(currentFilePath)
@@ -51,12 +56,14 @@ public sealed class TreeDocumentService : ITreeDocumentService
         return path;
     }
 
+    /// <inheritdoc/>
     public LoadedTreeDocument? Load()
     {
         var path = ThemedFileDialog.ShowOpen();
         return path is null ? null : Load(path);
     }
 
+    /// <inheritdoc/>
     public LoadedTreeDocument Load(string filePath)
     {
         var json = File.ReadAllText(filePath);

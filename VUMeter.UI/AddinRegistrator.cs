@@ -14,7 +14,7 @@ public class AddinRegistrator : IAddInRegistrator
     /// <summary>
     /// Registers the add-in services with the provided service collection.
     /// </summary>
-    /// <param name="services"></param>
+    /// <param name="services">The dependency-injection service collection used to register the add-in.</param>
     public void RegisterAddIn(IServiceCollection services)
     {
         services.AddKeyedTransient<TreeItemOption, VUMeterCreator>(VUMeterCreator.jsonkey);
@@ -28,8 +28,8 @@ public class AddinRegistrator : IAddInRegistrator
     /// <summary>
     /// Initializes the add-in with the provided service provider and data template manager.
     /// </summary>
-    /// <param name="serviceProvider"></param>
-    /// <param name="dataTemplateManager"></param>
+    /// <param name="serviceProvider">The provider containing the registered add-in services.</param>
+    /// <param name="dataTemplateManager">The host manager used to associate view models with their views.</param>
     public void InitializeAddIn(ServiceProvider serviceProvider, IDataTemplateManager dataTemplateManager)
     {
         dataTemplateManager.RegisterDataTemplate<VUMeterViewModel, VUMeterView>();

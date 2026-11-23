@@ -6,8 +6,10 @@ using System.Windows.Threading;
 
 namespace CommunicationManager.UI;
 
+/// <summary>Displays serial channel configuration and the communication log.</summary>
 public partial class CommunicationManagerView : UserControl
 {
+    /// <summary>Creates and initializes the Communication Manager view.</summary>
     public CommunicationManagerView()
     {
         InitializeComponent();

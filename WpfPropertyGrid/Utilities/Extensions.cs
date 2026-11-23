@@ -1,9 +1,13 @@
 ﻿namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Provides helper operations used by the property-grid implementation.
+/// </summary>
 public static class Extensions
 {
     private const string _hexaChars = "0123456789ABCDEF";
-
+    /// <summary>
+    /// Converts hexa.
+    /// </summary>
     public static string? ToHexa(byte[] bytes)
     {
         if (bytes == null)
@@ -11,7 +15,9 @@ public static class Extensions
 
         return ToHexa(bytes, 0, bytes.Length);
     }
-
+    /// <summary>
+    /// Converts hexa.
+    /// </summary>
     public static string ToHexa(byte[] bytes, int offset, int count)
     {
         if (bytes == null)
@@ -36,7 +42,9 @@ public static class Extensions
         }
         return sb.ToString();
     }
-
+    /// <summary>
+    /// Converts an enum editor value to the corresponding enum object.
+    /// </summary>
     public static object EnumToObject(Type enumType, object value)
     {
         ArgumentNullException.ThrowIfNull(enumType);
@@ -73,7 +81,9 @@ public static class Extensions
 
         throw new ArgumentException(null, nameof(enumType));
     }
-
+    /// <summary>
+    /// Formats the current value according to the supplied format and culture.
+    /// </summary>
     public static string Format(object? obj, string? format, IFormatProvider? formatProvider)
     {
         if (obj == null)
@@ -221,7 +231,9 @@ public static class Extensions
         }
         return DataBindingEvaluator.EvalFormat(obj, format, formatProvider, null, false);
     }
-
+    /// <summary>
+    /// Combines collection values into a string using the configured separator.
+    /// </summary>
     public static string? ConcatenateCollection(IEnumerable collection, string expression, string? separator, IFormatProvider? formatProvider = null)
     {
         if (collection == null)
@@ -251,7 +263,9 @@ public static class Extensions
         }
         return sb.ToString();
     }
-
+    /// <summary>
+    /// Gets the element type of an enumerable type, if it can be determined.
+    /// </summary>
     public static Type GetElementType(Type collectionType)
     {
         ArgumentNullException.ThrowIfNull(collectionType);
@@ -275,7 +289,9 @@ public static class Extensions
         }
         return typeof(object);
     }
-
+    /// <summary>
+    /// Gets the highest bit position represented by an enum value.
+    /// </summary>
     public static int GetEnumMaxPower(Type enumType)
     {
         ArgumentNullException.ThrowIfNull(enumType);
@@ -286,7 +302,9 @@ public static class Extensions
         var type = Enum.GetUnderlyingType(enumType);
         return GetEnumUnderlyingTypeMaxPower(type);
     }
-
+    /// <summary>
+    /// Gets the maximum bit position supported by the enum underlying type.
+    /// </summary>
     public static int GetEnumUnderlyingTypeMaxPower(Type underlyingType)
     {
         ArgumentNullException.ThrowIfNull(underlyingType);
@@ -305,7 +323,9 @@ public static class Extensions
 
         throw new ArgumentException(null, nameof(underlyingType));
     }
-
+    /// <summary>
+    /// Converts an enum value to its unsigned integral representation.
+    /// </summary>
     public static ulong EnumToUInt64(object value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -318,7 +338,9 @@ public static class Extensions
             _ => ConversionService.ConvertType<ulong>(value),
         };
     }
-
+    /// <summary>
+    /// Determines whether a type is a flags enum.
+    /// </summary>
     public static bool IsFlagsEnum(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -328,7 +350,9 @@ public static class Extensions
 
         return type.IsDefined(typeof(FlagsAttribute), true);
     }
-
+    /// <summary>
+    /// Splits text into a list using the specified separator.
+    /// </summary>
     public static List<T> SplitToList<T>(this string? thisString, params char[] separators)
     {
         var list = new List<T>();
@@ -345,7 +369,9 @@ public static class Extensions
         }
         return list;
     }
-
+    /// <summary>
+    /// Returns null when the string is empty or consists only of whitespace.
+    /// </summary>
     public static string? Nullify(this string? thisString, bool trim = true)
     {
         if (string.IsNullOrWhiteSpace(thisString))
@@ -353,7 +379,9 @@ public static class Extensions
 
         return trim ? thisString.Trim() : thisString;
     }
-
+    /// <summary>
+    /// Compares two strings without regard to case.
+    /// </summary>
     public static bool EqualsIgnoreCase(this string? thisString, string? text, bool trim = true)
     {
         if (trim)
@@ -373,7 +401,9 @@ public static class Extensions
 
         return string.Compare(thisString, text, StringComparison.OrdinalIgnoreCase) == 0;
     }
-
+    /// <summary>
+    /// Enumerates visual descendants of the specified element.
+    /// </summary>
     public static IEnumerable<DependencyObject> EnumerateVisualChildren(this DependencyObject obj, bool recursive = true, bool sameLevelFirst = true)
     {
         if (obj == null)
@@ -424,7 +454,9 @@ public static class Extensions
             }
         }
     }
-
+    /// <summary>
+    /// Finds a visual descendant matching the requested type and optional name.
+    /// </summary>
     public static T? FindVisualChild<T>(this DependencyObject obj, Func<T, bool> where) where T : FrameworkElement
     {
         ArgumentNullException.ThrowIfNull(where);
@@ -436,7 +468,9 @@ public static class Extensions
         }
         return null;
     }
-
+    /// <summary>
+    /// Finds a visual descendant matching the requested type and optional name.
+    /// </summary>
     public static T? FindVisualChild<T>(this DependencyObject obj, string name) where T : FrameworkElement
     {
         foreach (var item in obj.EnumerateVisualChildren(true, true).OfType<T>())
@@ -449,7 +483,9 @@ public static class Extensions
         }
         return null;
     }
-
+    /// <summary>
+    /// Enumerates dependency properties set through markup on the element.
+    /// </summary>
     public static IEnumerable<DependencyProperty> EnumerateMarkupDependencyProperties(object element)
     {
         if (element != null)
@@ -465,7 +501,9 @@ public static class Extensions
             }
         }
     }
-
+    /// <summary>
+    /// Enumerates attached dependency properties set through markup on the element.
+    /// </summary>
     public static IEnumerable<DependencyProperty> EnumerateMarkupAttachedProperties(object element)
     {
         if (element != null)
@@ -481,7 +519,9 @@ public static class Extensions
             }
         }
     }
-
+    /// <summary>
+    /// Gets the element itself or a matching visual ancestor.
+    /// </summary>
     public static T? GetVisualSelfOrParent<T>(this DependencyObject source) where T : DependencyObject
     {
         if (source == null)
@@ -495,7 +535,9 @@ public static class Extensions
 
         return VisualTreeHelper.GetParent(source).GetVisualSelfOrParent<T>();
     }
-
+    /// <summary>
+    /// Finds the first focusable visual descendant of the element.
+    /// </summary>
     public static T? FindFocusableVisualChild<T>(this DependencyObject obj, string name) where T : FrameworkElement
     {
         foreach (var item in obj.EnumerateVisualChildren(true, true).OfType<T>())
@@ -505,7 +547,9 @@ public static class Extensions
         }
         return null;
     }
-
+    /// <summary>
+    /// Gets the visual children of the specified element.
+    /// </summary>
     public static IEnumerable<T> GetChildren<T>(this DependencyObject obj)
     {
         if (obj == null)
@@ -528,7 +572,9 @@ public static class Extensions
             }
         }
     }
-
+    /// <summary>
+    /// Enumerates expander controls in the visual tree.
+    /// </summary>
     public static IEnumerable<Expander> EnumerateExpanders(this DataGrid grid)
     {
         ArgumentNullException.ThrowIfNull(grid);
@@ -540,7 +586,9 @@ public static class Extensions
                 yield return expander;
         }
     }
-
+    /// <summary>
+    /// Gets an expander associated with the specified element.
+    /// </summary>
     public static Expander? GetExpander(this DataGrid grid, object groupName)
     {
         ArgumentNullException.ThrowIfNull(grid);
@@ -553,7 +601,9 @@ public static class Extensions
         }
         return null;
     }
-
+    /// <summary>
+    /// Gets the element itself or a matching parent in the visual tree.
+    /// </summary>
     public static T? GetSelfOrParent<T>(this FrameworkElement? source) where T : FrameworkElement
     {
         while (true)
@@ -567,8 +617,13 @@ public static class Extensions
             source = source.Parent as FrameworkElement;
         }
     }
-
+    /// <summary>
+    /// Gets the messages from an exception and its inner exceptions.
+    /// </summary>
     public static string? GetAllMessages(this Exception? exception) => GetAllMessages(exception, Environment.NewLine);
+    /// <summary>
+    /// Gets the messages from an exception and its inner exceptions.
+    /// </summary>
     public static string? GetAllMessages(this Exception? exception, string? separator = null)
     {
         if (exception == null)
@@ -595,7 +650,9 @@ public static class Extensions
         }
         AppendMessages(sb, e.InnerException, separator);
     }
-
+    /// <summary>
+    /// Determines whether a type is nullable.
+    /// </summary>
     public static bool IsNullable(this Type type)
     {
         if (type == null)
@@ -603,7 +660,9 @@ public static class Extensions
 
         return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
     }
-
+    /// <summary>
+    /// Centers the window over its owner.
+    /// </summary>
     public static void CenterOwner(this Window window, Window? alternateOwner = null)
     {
         if (window == null)

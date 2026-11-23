@@ -1,19 +1,30 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// Provides a date-and-time picker control for editing a DateTime value.
+/// </summary>
 public class DateTimePicker : DatePicker
 {
+    /// <summary>
+    /// Identifies the dependency property for the selected date and time.
+    /// </summary>
     public static readonly DependencyProperty SelectedDateTimeProperty =
         DependencyProperty.Register("SelectedDateTime", typeof(DateTime?), typeof(DateTimePicker),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender, SelectedTimesChanged));
-
+    /// <summary>
+    /// Identifies the dependency property for the selectable time interval.
+    /// </summary>
     public static readonly DependencyProperty TimeIntervalProperty =
         DependencyProperty.Register("TimeInterval", typeof(TimeSpan), typeof(DateTimePicker),
         new FrameworkPropertyMetadata(new TimeSpan(0, 15, 0), FrameworkPropertyMetadataOptions.AffectsRender, TimesChanged));
-
+    /// <summary>
+    /// Identifies the dependency property for the earliest selectable time.
+    /// </summary>
     public static readonly DependencyProperty StartTimeProperty =
         DependencyProperty.Register("StartTime", typeof(TimeSpan), typeof(DateTimePicker),
         new FrameworkPropertyMetadata(new TimeSpan(0, 0, 0), FrameworkPropertyMetadataOptions.AffectsRender, TimesChanged));
-
+    /// <summary>
+    /// Identifies the dependency property for the latest selectable time.
+    /// </summary>
     public static readonly DependencyProperty EndTimeProperty =
         DependencyProperty.Register("EndTime", typeof(TimeSpan), typeof(DateTimePicker),
         new FrameworkPropertyMetadata(new TimeSpan(1, 0, 0, 0), FrameworkPropertyMetadataOptions.AffectsRender, TimesChanged));
@@ -49,14 +60,18 @@ public class DateTimePicker : DatePicker
     private TextBox? _textbox;
     private bool _initialSetup;
     private bool _handleEvents = true;
-
+    /// <summary>
+    /// Initializes a new instance of DateTimePicker.
+    /// </summary>
     public DateTimePicker()
     {
         _timeControl = new ListBox();
         _timeControl.SelectionChanged += OnTimeControlSelectionChanged;
         _timeControl.ItemStringFormat = "{0:hh\\:mm}";
     }
-
+    /// <summary>
+    /// Gets or sets the selected time.
+    /// </summary>
     public TimeSpan? SelectedTime
     {
         get
@@ -76,12 +91,26 @@ public class DateTimePicker : DatePicker
             SelectedDateTime = DateTime.Now.Date + value;
         }
     }
-
+    /// <summary>
+    /// Gets or sets the selected date time.
+    /// </summary>
     public DateTime? SelectedDateTime { get => (DateTime?)GetValue(SelectedDateTimeProperty); set => SetValue(SelectedDateTimeProperty, value); }
+    /// <summary>
+    /// Gets or sets the start time.
+    /// </summary>
     public TimeSpan StartTime { get => (TimeSpan)GetValue(StartTimeProperty); set => SetValue(StartTimeProperty, value); }
+    /// <summary>
+    /// Gets or sets the end time.
+    /// </summary>
     public TimeSpan EndTime { get => (TimeSpan)GetValue(EndTimeProperty); set => SetValue(EndTimeProperty, value); }
+    /// <summary>
+    /// Gets or sets the time interval.
+    /// </summary>
     public TimeSpan TimeInterval { get => (TimeSpan)GetValue(TimeIntervalProperty); set => SetValue(TimeIntervalProperty, value); }
 
+    /// <summary>
+    /// Selects the available time value closest to the current date-and-time value.
+    /// </summary>
     protected virtual void SelectClosestMatch()
     {
         if (_timeControl.Items.Count == 0 || !SelectedTime.HasValue)
@@ -120,6 +149,9 @@ public class DateTimePicker : DatePicker
         _timeControl.ScrollIntoView(_timeControl.SelectedItem);
     }
 
+    /// <summary>
+    /// Updates the text box to reflect the selected date and time.
+    /// </summary>
     protected virtual void UpdateTextbox()
     {
         if (SelectedTime.HasValue && SelectedDate.HasValue)
@@ -138,6 +170,9 @@ public class DateTimePicker : DatePicker
         }
     }
 
+    /// <summary>
+    /// Updates the selected date and time after the time control selection changes.
+    /// </summary>
     protected virtual void OnTimeControlSelectionChanged(object? sender, SelectionChangedEventArgs? e)
     {
         if (!_handleEvents)
@@ -155,6 +190,7 @@ public class DateTimePicker : DatePicker
         UpdateTextbox();
     }
 
+    /// <inheritdoc/>
     protected override void OnKeyDown(KeyEventArgs e)
     {
         if (!e.Handled)
@@ -173,6 +209,7 @@ public class DateTimePicker : DatePicker
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnSelectedDateChanged(SelectionChangedEventArgs e)
     {
         base.OnSelectedDateChanged(e);
@@ -182,18 +219,21 @@ public class DateTimePicker : DatePicker
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnInitialized(EventArgs e)
     {
         base.OnInitialized(e);
         TimesChanged(this, new DependencyPropertyChangedEventArgs());
     }
 
+    /// <inheritdoc/>
     protected override void OnCalendarClosed(RoutedEventArgs e)
     {
         base.OnCalendarClosed(e);
         OnTimeControlSelectionChanged(null, null);
     }
 
+    /// <inheritdoc/>
     protected override void OnCalendarOpened(RoutedEventArgs e)
     {
         base.OnCalendarOpened(e);
@@ -211,7 +251,7 @@ public class DateTimePicker : DatePicker
         SelectedTimesChanged(this, new DependencyPropertyChangedEventArgs());
         OnTimeControlSelectionChanged(null, null);
     }
-
+    /// <inheritdoc/>
     public override void OnApplyTemplate()
     {
         _textbox = GetTemplateChild("PART_TextBox") as TextBox;

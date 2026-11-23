@@ -1,12 +1,28 @@
 ﻿namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Represents a color using hue, saturation, and value components.
+/// </summary>
 public struct Hsv(float hue, float saturation, float value) : IEquatable<Hsv>
 {
+    /// <summary>
+    /// Gets or sets the hue component.
+    /// </summary>
     public float Hue = hue;
+    /// <summary>
+    /// Gets or sets the saturation component.
+    /// </summary>
     public float Saturation = saturation;
+    /// <summary>
+    /// Gets or sets the value (brightness) component.
+    /// </summary>
     public float Value = value;
+    /// <summary>
+    /// Converts an HSV value to the corresponding WPF color.
+    /// </summary>
     public readonly Color Color => ToColor();
-
+    /// <summary>
+    /// Gets the color with its hue shifted by half a turn.
+    /// </summary>
     public readonly Hsv Complementary
     {
         get
@@ -20,13 +36,17 @@ public struct Hsv(float hue, float saturation, float value) : IEquatable<Hsv>
             return new Hsv(hue, Saturation, Value);
         }
     }
-
+    /// <summary>
+    /// Converts this color to a 32-bit ARGB value.
+    /// </summary>
     public readonly int ToArgb()
     {
         var color = Color;
         return (int)(((uint)color.A << 24) | (uint)(color.R << 16) | (uint)(color.G << 8) | color.B);
     }
-
+    /// <summary>
+    /// Converts this HSV value to a WPF color.
+    /// </summary>
     public readonly Color ToColor(float a = 1)
     {
         var hue = Hue * 360;
@@ -104,18 +124,39 @@ public struct Hsv(float hue, float saturation, float value) : IEquatable<Hsv>
 
         return Color.FromScRgb(a, r, g, b);
     }
-
+    /// <inheritdoc/>
     public override readonly int GetHashCode() => Hue.GetHashCode() ^ Saturation.GetHashCode() ^ Value.GetHashCode();
+    /// <inheritdoc/>
     public override readonly bool Equals(object? other) => other is Hsv hsv && Equals(hsv);
+    /// <summary>
+    /// Determines whether this HSV value equals another value.
+    /// </summary>
     public readonly bool Equals(Hsv other) => Value == other.Value && Hue == other.Hue && Saturation == other.Saturation;
+    /// <inheritdoc/>
     public override readonly string ToString() => "H:" + Hue + " S:" + Saturation + " V:" + Value;
+    /// <summary>
+    /// Converts an HSV value to the corresponding WPF color.
+    /// </summary>
     public static implicit operator Color(Hsv result) => result.ToColor();
+    /// <summary>
+    /// Converts a WPF color to its HSV representation.
+    /// </summary>
     public static implicit operator Hsv(Color color) => From(color);
+    /// <summary>
+    /// Determines whether two HSV values are equal.
+    /// </summary>
     public static bool operator ==(Hsv x, Hsv y) => x.Equals(y);
+    /// <summary>
+    /// Determines whether two HSV values are different.
+    /// </summary>
     public static bool operator !=(Hsv x, Hsv y) => !x.Equals(y);
-
+    /// <summary>
+    /// Creates an HSV value from a WPF color.
+    /// </summary>
     public static Hsv From(Color color) => new(GetHue(color.ScR, color.ScG, color.ScB), GetSaturation(color.ScR, color.ScG, color.ScB), GetValue(color.ScR, color.ScG, color.ScB));
-
+    /// <summary>
+    /// Gets the normalized hue component for the supplied RGB components.
+    /// </summary>
     public static float GetHue(float r, float g, float b)
     {
         if (r == g && g == b)
@@ -152,8 +193,13 @@ public struct Hsv(float hue, float saturation, float value) : IEquatable<Hsv>
         }
         return hue / 360;
     }
-
+    /// <summary>
+    /// Gets the largest of the supplied RGB components.
+    /// </summary>
     public static float GetValue(float r, float g, float b) => r >= g ? (r >= b ? r : b) : (g >= b ? g : b);
+    /// <summary>
+    /// Gets the saturation component for the supplied RGB components.
+    /// </summary>
     public static float GetSaturation(float r, float g, float b)
     {
         var min = r <= g ? (r <= b ? r : b) : (g <= b ? g : b);

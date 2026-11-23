@@ -2,12 +2,19 @@ using System.Windows;
 using System.Windows.Media;
 
 namespace VUMeter.UI;
-
+/// <summary>
+/// Renders configured points and trails from an XY control view model.
+/// </summary>
 public sealed class XYPlot : FrameworkElement
 {
+    /// <summary>
+    /// Identifies the model dependency property.
+    /// </summary>
     public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(
         nameof(Model), typeof(object), typeof(XYPlot), new FrameworkPropertyMetadata(null, OnModelChanged));
-
+    /// <summary>
+    /// Gets or sets the XY control view model whose points and trails are rendered.
+    /// </summary>
     public object? Model
     {
         get => GetValue(ModelProperty);
@@ -26,6 +33,7 @@ public sealed class XYPlot : FrameworkElement
 
     private void OnPlotChanged(object? sender, EventArgs args) => InvalidateVisual();
 
+    /// <inheritdoc/>
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);

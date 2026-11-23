@@ -7,8 +7,10 @@ namespace VUMeter.UI;
 internal class VUMeterCreator : TreeItemOption
 {
     internal static string jsonkey = "vumeter";
-
-    public VUMeterCreator(IServiceProvider serviceProvider) 
+    /// <summary>
+    /// Initializes a new instance of VUMeterCreator.
+    /// </summary>
+    public VUMeterCreator(IServiceProvider serviceProvider)
         : base(jsonkey, "Simple VU Meter", "VU Meters", "Simple VU Meter", GetIcon(), serviceProvider)
     {
     }

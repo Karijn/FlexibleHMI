@@ -3,26 +3,16 @@ using System.Windows.Markup;
 
 namespace FlexibleHMI.Interfaces;
 
-/// <summary>
-/// 
-/// </summary>
+/// <summary>Registers WPF data templates in the current application's resources.</summary>
 public class DataTemplateManager : IDataTemplateManager
 {
-    /// <summary>
-    /// Registers a data template for the specified view model and view types.
-    /// </summary>
-    /// <typeparam name="TViewModel"></typeparam>
-    /// <typeparam name="TView"></typeparam>
+    /// <inheritdoc />
     public void RegisterDataTemplate<TViewModel, TView>() where TView : FrameworkElement
     {
         RegisterDataTemplate(typeof(TViewModel), typeof(TView));
     }
 
-    /// <summary>
-    /// Registers a data template for the specified view model and view types.
-    /// </summary>
-    /// <param name="viewModelType"></param>
-    /// <param name="viewType"></param>
+    /// <inheritdoc />
     public void RegisterDataTemplate(Type viewModelType, Type viewType)
     {
         var template = CreateTemplate(viewModelType, viewType);

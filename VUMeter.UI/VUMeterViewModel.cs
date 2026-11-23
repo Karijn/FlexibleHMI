@@ -17,7 +17,9 @@ internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocument
     private bool _showLegend;
     private string _showLegendProperty = "";
     private bool _autoSelect = true;
-
+    /// <summary>
+    /// Initializes a new instance of VUMeterViewModel.
+    /// </summary>
     public VUMeterViewModel(IVariableHandler variables)
     {
         _variables = variables ?? throw new ArgumentNullException(nameof(variables));
@@ -28,33 +30,74 @@ internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocument
         Inputs.Add(new VUMeterInputViewModel(InputChanged));
         RefreshNames();
     }
-
+    /// <summary>
+    /// Occurs when meter settings change and the host should mark the document as modified.
+    /// </summary>
     public event EventHandler? DocumentDataChanged;
+    /// <summary>
+    /// Gets the available numeric variable names that can be monitored by meter inputs.
+    /// </summary>
     public ObservableCollection<string> NumericPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the available Boolean variable names used for conditional legend visibility.
+    /// </summary>
     public ObservableCollection<string> BooleanPropertyNames { get; } = [];
+    /// <summary>
+    /// Gets the editable meter input rows.
+    /// </summary>
     public ObservableCollection<VUMeterInputViewModel> Inputs { get; } = [];
+    /// <summary>
+    /// Gets the supported colors offered for meter inputs.
+    /// </summary>
     public IReadOnlyList<string> Colors => XYPointViewModel.Colors;
+    /// <summary>
+    /// Gets the maximum needle angle, in degrees.
+    /// </summary>
     public double MaximumAngle => 50;
+    /// <summary>
+    /// Gets or sets the manual legend visibility used when no visibility variable is selected.
+    /// </summary>
     public bool ShowLegend
     {
         get => _showLegend;
         set { if (SetProperty(ref _showLegend, value)) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } }
     }
+    /// <summary>
+    /// Gets or sets the optional Boolean variable name that controls legend visibility.
+    /// </summary>
     public string ShowLegendProperty
     {
         get => _showLegendProperty;
         set { if (SetProperty(ref _showLegendProperty, value ?? "")) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } }
     }
+    /// <summary>
+    /// Gets the resolved legend visibility after applying the optional variable binding.
+    /// </summary>
     public bool EffectiveShowLegend => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Visible;
+    /// <summary>
+    /// Gets the status message for the optional legend visibility binding.
+    /// </summary>
     public string LegendStatus => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Status;
     private void NotifyLegendChanged()
     {
         OnPropertyChanged(nameof(EffectiveShowLegend));
         OnPropertyChanged(nameof(LegendStatus));
     }
+    /// <summary>
+    /// Gets the kind.
+    /// </summary>
     public override string Kind => VUMeterCreator.jsonkey;
+    /// <summary>
+    /// Gets the max children.
+    /// </summary>
     public override int MaxChildren => 0;
+    /// <summary>
+    /// Gets the child rule.
+    /// </summary>
     public override string ChildRule => "No Children here";
+    /// <summary>
+    /// Gets the can accept children.
+    /// </summary>
     public override bool CanAcceptChildren => false;
 
     [RelayCommand]
@@ -72,7 +115,7 @@ internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocument
         _autoSelect = false;
         DocumentDataChanged?.Invoke(this, EventArgs.Empty);
     }
-
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         var copy = new VUMeterViewModel(_variables);
@@ -80,10 +123,14 @@ internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocument
         copy.LoadDocumentData(SaveDocumentData());
         return copy;
     }
-
+    /// <summary>
+    /// Saves document data.
+    /// </summary>
     public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(new Settings(null,
         Inputs.Select(i => new InputSettings(i.PropertyName, i.Color)).ToList(), ShowLegend, ShowLegendProperty));
-
+    /// <summary>
+    /// Loads document data.
+    /// </summary>
     public void LoadDocumentData(JsonElement data)
     {
         var settings = data.Deserialize<Settings>() ?? throw new InvalidDataException("Invalid VU meter settings.");
@@ -100,14 +147,18 @@ internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocument
         ShowLegend = settings.ShowLegend;
         ShowLegendProperty = settings.ShowLegendProperty;
     }
-
+    /// <summary>
+    /// Handles the document item detached notification.
+    /// </summary>
     public void OnDocumentItemDetached()
     {
         _detached = true;
         Interlocked.Increment(ref _version);
         _variables.VariableChanged -= OnVariableChanged;
     }
-
+    /// <summary>
+    /// Handles the document item reattached notification.
+    /// </summary>
     public void OnDocumentItemReattached()
     {
         if (!_detached) return;

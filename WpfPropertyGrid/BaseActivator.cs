@@ -1,7 +1,10 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// Creates property-grid model and editor instances, including grid-specific model types.
+/// </summary>
 public class BaseActivator : IActivator
 {
+    /// <inheritdoc/>
     public virtual object? CreateInstance(Type type, params object?[]? args)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -23,7 +26,7 @@ public class BaseActivator : IActivator
 
         return Activator.CreateInstance(type, args);
     }
-
+    /// <inheritdoc/>
     public T? CreateInstance<T>(params object?[]? args)
     {
         if (typeof(T) == typeof(Utilities.DynamicObject))

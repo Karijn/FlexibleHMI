@@ -6,19 +6,18 @@ using System.Windows.Media;
 
 namespace FlexibleHMI.Converters;
 
+/// <summary>Converts a Boolean value to a configurable true/false solid-color brush for WPF bindings.</summary>
 [ValueConversion(typeof(bool), typeof(SolidColorBrush))]
     public class BoolToColorBrushConverter : IValueConverter
     {
         #region Implementation of IValueConverter
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value">Bolean value controlling wether to apply color change</param>
-        /// <param name="targetType"></param>
-        /// <param name="parameter">A CSV string on the format [ColorNameIfTrue;ColorNameIfFalse;OpacityNumber] may be provided for customization, default is [LimeGreen;Transperent;1.0].</param>
-        /// <param name="culture"></param>
-        /// <returns>A SolidColorBrush in the supplied or default colors depending on the state of value.</returns>
+        /// <summary>Converts a Boolean value to a solid brush, optionally using colors and opacity from the converter parameter.</summary>
+        /// <param name="value">The Boolean value selecting the true or false color.</param>
+        /// <param name="targetType">The requested target type; the result is a <see cref="SolidColorBrush"/>.</param>
+        /// <param name="parameter">Optional semicolon-separated true color, false color, and opacity values; defaults to LimeGreen, Transparent, and 1.</param>
+        /// <param name="culture">The binding culture (not used by this converter).</param>
+        /// <returns>A brush using the color selected by <paramref name="value"/>.</returns>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             SolidColorBrush color;
@@ -66,6 +65,12 @@ namespace FlexibleHMI.Converters;
         }
 
 
+        /// <summary>This one-way converter does not support converting a brush back to a Boolean.</summary>
+        /// <param name="value">The value produced by <see cref="Convert"/>.</param>
+        /// <param name="targetType">The requested source type.</param>
+        /// <param name="parameter">The converter parameter.</param>
+        /// <param name="culture">The binding culture.</param>
+        /// <returns>This method does not return; it throws <see cref="NotImplementedException"/>.</returns>
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
@@ -73,6 +78,9 @@ namespace FlexibleHMI.Converters;
 
         #endregion
 
+        /// <summary>Resolves a named color using <see cref="System.Drawing.Color.FromName(string)"/> and converts it to a WPF color.</summary>
+        /// <param name="colorName">The color name to resolve.</param>
+        /// <returns>The resolved color's ARGB components as a WPF <see cref="Color"/>.</returns>
         public static Color ColorFromName(string colorName)
         {
             System.Drawing.Color systemColor = System.Drawing.Color.FromName(colorName);

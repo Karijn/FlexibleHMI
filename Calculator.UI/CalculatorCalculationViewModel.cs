@@ -7,11 +7,19 @@ using System.Text.Json;
 
 namespace Calculator.UI;
 
+/// <summary>
+/// Holds one expression, its destination property and type, and the latest evaluation result and status.
+/// </summary>
 public partial class CalculatorCalculationViewModel : ObservableObject
 {
     private readonly IVariableHandler _variableHandler;
     private readonly IStructTypeRegistry _structTypeRegistry;
 
+    /// <summary>Creates a calculation bound to the specified property services.</summary>
+    /// <param name="variableHandler">Provides source and destination properties.</param>
+    /// <param name="structTypeRegistry">Handles typed structure and array values.</param>
+    /// <param name="outputPropertyName">Initial destination property name; defaults to <c>CalculatedProperty</c>.</param>
+    /// <exception cref="ArgumentNullException">A required service is <see langword="null"/>.</exception>
     public CalculatorCalculationViewModel(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry, string outputPropertyName = "CalculatedProperty")
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
@@ -19,23 +27,30 @@ public partial class CalculatorCalculationViewModel : ObservableObject
         OutputPropertyName = outputPropertyName;
     }
 
+    /// <summary>Gets the output type names supported by the calculator.</summary>
     public IReadOnlyList<string> OutputTypes { get; } = ["Double", "Integer", "Boolean", "String", "DateTime", "TimeSpan", "Color", "Struct", "Array"];
 
+    /// <summary>Gets or sets the property receiving the calculated value.</summary>
     [ObservableProperty]
     private string _outputPropertyName = string.Empty;
 
+    /// <summary>Gets or sets the expression to evaluate.</summary>
     [ObservableProperty]
     private string _expression = string.Empty;
 
+    /// <summary>Gets or sets the destination type: a scalar type, <c>Struct</c>, or <c>Array</c>.</summary>
     [ObservableProperty]
     private string _outputType = "Double";
 
+    /// <summary>Gets or sets whether evaluation is enabled, including live recalculation on property changes.</summary>
     [ObservableProperty]
     private bool _enabled = true;
 
+    /// <summary>Gets the latest formatted result, or <c>-</c> when no result is available.</summary>
     [ObservableProperty]
     private string _result = "-";
 
+    /// <summary>Gets the latest evaluation status or validation error message.</summary>
     [ObservableProperty]
     private string _status = "Enter an expression and set the output property.";
 
@@ -57,6 +72,8 @@ public partial class CalculatorCalculationViewModel : ObservableObject
         }
     }
 
+    /// <summary>Evaluates the current expression and updates the destination property when the inputs are valid.</summary>
+    /// <remarks>Evaluation errors are reported in <see cref="Status"/> and clear <see cref="Result"/> rather than being propagated.</remarks>
     [RelayCommand]
     public void Recalculate()
     {
@@ -208,6 +225,10 @@ public partial class CalculatorCalculationViewModel : ObservableObject
         }
     }
 
+    /// <summary>Creates a calculation with the same expression settings and the supplied property services.</summary>
+    /// <param name="variableHandler">Property handler for the copied calculation.</param>
+    /// <param name="structTypeRegistry">Structure registry for the copied calculation.</param>
+    /// <returns>A new calculation carrying this calculation's expression, output type, enabled state, and destination name.</returns>
     public CalculatorCalculationViewModel Copy(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry) => new(variableHandler, structTypeRegistry, OutputPropertyName)
     {
         Expression = Expression,

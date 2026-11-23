@@ -4,8 +4,11 @@ using System.Windows.Media.Imaging;
 
 namespace PropertyManager.UI
 {
+    /// <summary>Provides the document-tree option for creating a Property Manager.</summary>
     public class PropertyManagerCreator : TreeItemOption
     {
+        /// <summary>Creates the Property Manager tree option.</summary>
+        /// <param name="serviceProvider">The service provider used to create document items.</param>
         public PropertyManagerCreator(IServiceProvider serviceProvider)
             : base(jsonkey, defaultname, defaultgroup, defaultdescription, GetIcon(), serviceProvider)
         {

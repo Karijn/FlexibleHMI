@@ -3,8 +3,10 @@ using System.Windows;
 
 namespace FlexibleHMI.Views;
 
+/// <summary>Displays application version and about information.</summary>
 public partial class AboutWindow : Window
 {
+    /// <summary>Initializes the about window and reads the application version.</summary>
     public AboutWindow()
     {
         InitializeComponent();

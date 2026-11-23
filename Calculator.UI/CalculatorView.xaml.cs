@@ -14,10 +14,11 @@ using System.Windows.Shapes;
 namespace Calculator.UI
 {
     /// <summary>
-    /// Interaction logic for CalculatorView.xaml
+    /// WPF view for <see cref="CalculatorViewModel"/>. The host supplies the view model as its data context.
     /// </summary>
     public partial class CalculatorView : UserControl
     {
+        /// <summary>Initializes the calculator view and its XAML bindings.</summary>
         public CalculatorView()
         {
             InitializeComponent();

@@ -4,6 +4,7 @@ using System.Text.Json;
 
 namespace PropertyManager;
 
+/// <summary>Stores struct definitions and converts typed values using those definitions.</summary>
 public sealed class StructTypeRegistry : IStructTypeRegistry
 {
     private static readonly HashSet<string> PrimitiveTypes = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color"];
@@ -11,13 +12,17 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
     private readonly object _syncRoot = new();
     private Dictionary<string, StructTypeDefinition> _definitions = new(StringComparer.Ordinal);
 
+    /// <summary>Creates a registry that migrates values in the supplied variable store.</summary>
+    /// <param name="variableHandler">The variable store containing property values.</param>
     public StructTypeRegistry(IVariableHandler variableHandler)
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
     }
 
+    /// <inheritdoc />
     public event EventHandler? Changed;
 
+    /// <inheritdoc />
     public IReadOnlyList<StructTypeDefinition> GetDefinitions()
     {
         lock (_syncRoot)
@@ -26,12 +31,14 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         }
     }
 
+    /// <inheritdoc />
     public void ValidateDefinitions(IEnumerable<StructTypeDefinition> definitions)
     {
         ArgumentNullException.ThrowIfNull(definitions);
         _ = CreateDefinitionMap(definitions);
     }
 
+    /// <inheritdoc />
     public void ReplaceDefinitions(IEnumerable<StructTypeDefinition> definitions)
     {
         ArgumentNullException.ThrowIfNull(definitions);
@@ -44,6 +51,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <inheritdoc />
     public void SaveDefinition(StructTypeDefinition definition, string? originalName = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -121,6 +129,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <inheritdoc />
     public void RemoveDefinition(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -163,12 +172,14 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <inheritdoc />
     public StructValue CreateDefaultValue(string typeName)
     {
         var definitions = GetDefinitionMap();
         return CreateDefaultValue(typeName, definitions, new HashSet<string>(StringComparer.Ordinal));
     }
 
+    /// <inheritdoc />
     public StructValue ParseValue(string typeName, string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -176,6 +187,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return ParseValue(typeName, document.RootElement, GetDefinitionMap());
     }
 
+    /// <inheritdoc />
     public StructValue ParseValue(string typeName, string json, IEnumerable<StructTypeDefinition> definitions)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -184,6 +196,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return ParseValue(typeName, document.RootElement, definitionMap);
     }
 
+    /// <inheritdoc />
     public string SerializeValue(StructValue value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -192,6 +205,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return JsonSerializer.Serialize(ToSerializableFields(value, definitions));
     }
 
+    /// <inheritdoc />
     public StructValue UpdateMemberValue(StructValue value, string memberPath, object? memberValue)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -207,6 +221,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return updatedStruct;
     }
 
+    /// <inheritdoc />
     public IReadOnlyList<string> FindMemberPaths(StructValue value, string memberName)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -219,8 +234,10 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
             matchingFieldNames.Distinct(StringComparer.Ordinal).ToArray();
     }
 
+    /// <inheritdoc />
     public bool IsArrayType(string typeName) => IsArrayTypeName(typeName);
 
+    /// <inheritdoc />
     public object CreateDefaultTypedValue(string typeName)
     {
         var definitions = GetDefinitionMap();
@@ -228,6 +245,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return CreateDefaultTypedValue(typeName, definitions, new HashSet<string>(StringComparer.Ordinal));
     }
 
+    /// <inheritdoc />
     public object ParseTypedValue(string typeName, string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -237,6 +255,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return ParseTypedValue(typeName, document.RootElement, definitions);
     }
 
+    /// <inheritdoc />
     public object ParseTypedValue(string typeName, string json, IEnumerable<StructTypeDefinition> definitions)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -247,6 +266,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         return ParseTypedValue(typeName, document.RootElement, definitionMap);
     }
 
+    /// <inheritdoc />
     public string SerializeTypedValue(string typeName, object value)
     {
         ArgumentNullException.ThrowIfNull(value);

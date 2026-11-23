@@ -2,12 +2,19 @@ using System.Windows;
 using System.Windows.Media;
 
 namespace VUMeter.UI;
-
+/// <summary>
+/// Renders time-domain traces from an oscilloscope view model.
+/// </summary>
 public sealed class OscilloscopePlot : FrameworkElement
 {
+    /// <summary>
+    /// Identifies the model dependency property.
+    /// </summary>
     public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(
         nameof(Model), typeof(object), typeof(OscilloscopePlot), new FrameworkPropertyMetadata(null, OnModelChanged));
-
+    /// <summary>
+    /// Gets or sets the oscilloscope view model whose channel traces are rendered.
+    /// </summary>
     public object? Model { get => GetValue(ModelProperty); set => SetValue(ModelProperty, value); }
 
     private static void OnModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -22,6 +29,7 @@ public sealed class OscilloscopePlot : FrameworkElement
 
     private void OnPlotChanged(object? sender, EventArgs args) => InvalidateVisual();
 
+    /// <inheritdoc/>
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);

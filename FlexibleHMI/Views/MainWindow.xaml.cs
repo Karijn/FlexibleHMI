@@ -14,6 +14,7 @@ using System.Windows.Media.Media3D;
 
 namespace FlexibleHMI.Views;
 
+/// <summary>The main application window and its tree-editing drag-and-drop integration.</summary>
 public partial class MainWindow : Window
 {
     private Point _dragStartPoint;
@@ -26,6 +27,9 @@ public partial class MainWindow : Window
 
     private MainWindowViewModel ViewModel { get => (MainWindowViewModel)DataContext; }
 
+    /// <summary>Initializes the window, applies persisted dimensions, and connects view-model events.</summary>
+    /// <param name="viewModel">The view model supplying the window's data and commands.</param>
+    /// <param name="userSettingsService">The service providing persisted window dimensions.</param>
     public MainWindow(MainWindowViewModel viewModel, IUserSettingsService userSettingsService)
     {
         InitializeComponent();

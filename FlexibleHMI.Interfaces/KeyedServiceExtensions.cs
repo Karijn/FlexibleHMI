@@ -5,10 +5,13 @@ using System.Collections.ObjectModel;
 
 namespace FlexibleHMI.Interfaces;
 
+/// <summary>Provides registration helpers for keyed application services.</summary>
 public static class KeyedServiceExtensions
 {
     extension(IServiceCollection services)
     {
+        /// <summary>Enables resolving keyed registrations as dictionaries.</summary>
+        /// <returns>The service collection.</returns>
         public IServiceCollection AllowResolvingKeyedServicesAsDictionary()
         {
             // KeyedServiceCache caches all the keys of a given type for a
@@ -33,6 +36,9 @@ public static class KeyedServiceExtensions
             return services;
         }
 
+        /// <summary>Registers a factory keyed by the streamable item's type identifier.</summary>
+        /// <typeparam name="T">The streamable item type.</typeparam>
+        /// <returns>The service collection.</returns>
         public IServiceCollection AddStreamableItemFactory<T>() where T : IStreamableItem, new()
         {
             //sc.AddKeyedTransient<IStreamableItemFactory, StreamableItemFactory<T>>(name);

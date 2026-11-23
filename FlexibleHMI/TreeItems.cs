@@ -6,19 +6,25 @@ using System.Windows.Media;
 namespace FlexibleHMI;
 
 
+/// <summary>A tree node that does not accept child items.</summary>
 public sealed class LeafItemNode : TreeItemNode 
 {
+    /// <summary>Creates an empty leaf node.</summary>
     public LeafItemNode() : base()
     {
         Image = CreateDiamondImage(Colors.Red);
     }
 
+    /// <inheritdoc/>
     public override string Kind => "leaf";
 
+    /// <inheritdoc/>
     public override int MaxChildren => 0;
 
+    /// <inheritdoc/>
     public override string ChildRule => "No children";
 
+    /// <inheritdoc/>
     public override bool CanAcceptChildren => false;
 
     private static ImageSource CreateDiamondImage(Color color)
@@ -34,6 +40,7 @@ public sealed class LeafItemNode : TreeItemNode
         return image;
     }
 
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         TreeItemNode copy = Copy(new LeafItemNode());
@@ -42,17 +49,21 @@ public sealed class LeafItemNode : TreeItemNode
     }
 }
 
+/// <summary>A tree node that accepts at most one child item.</summary>
 public sealed class SingleChildItemNode : TreeItemNode
 {
+    /// <summary>Creates an empty single-child node.</summary>
     public SingleChildItemNode() : base()
     {
         Image = CreateDiamondImage(Colors.Blue);
     }
+    /// <inheritdoc/>
     public override string Kind => "singlechild";
 
-
+    /// <inheritdoc/>
     public override int MaxChildren => 1;
 
+    /// <inheritdoc/>
     public override string ChildRule => "One child maximum";
 
     private static ImageSource CreateDiamondImage(Color color)
@@ -68,6 +79,7 @@ public sealed class SingleChildItemNode : TreeItemNode
         return image;
     }
 
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         TreeItemNode copy = Copy(new SingleChildItemNode());
@@ -75,18 +87,24 @@ public sealed class SingleChildItemNode : TreeItemNode
     }
 }
 
+/// <summary>A tree node that accepts any number of child items.</summary>
 public sealed class CollectionItemNode : TreeItemNode
 {
+    /// <summary>Creates an empty collection node.</summary>
     public CollectionItemNode() : base()
     {
         Image = CreateDiamondImage(Colors.Silver);
     }
+    /// <inheritdoc/>
     public override string Kind => "collection";
 
+    /// <inheritdoc/>
     public override int MaxChildren => -1;
 
+    /// <inheritdoc/>
     public override string ChildRule => "Any number of children";
 
+    /// <inheritdoc/>
     public override bool CanAcceptChildren => true;
     private static ImageSource CreateDiamondImage(Color color)
     {
@@ -101,6 +119,7 @@ public sealed class CollectionItemNode : TreeItemNode
         return image;
     }
 
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         TreeItemNode copy = Copy(new CollectionItemNode());
@@ -110,19 +129,25 @@ public sealed class CollectionItemNode : TreeItemNode
 
 }
 
+/// <summary>A tree node that accepts any number of child items and represents a grid container.</summary>
 public sealed class GridItemNode : TreeItemNode
 {
+    /// <summary>Creates an empty grid node.</summary>
     public GridItemNode() : base()
     {
         Image = CreateDiamondImage(Colors.Gold);
     }
 
+    /// <inheritdoc/>
     public override string Kind => "grid";
 
+    /// <inheritdoc/>
     public override int MaxChildren => -1;
 
+    /// <inheritdoc/>
     public override string ChildRule => "Any number of children";
 
+    /// <inheritdoc/>
     public override bool CanAcceptChildren => true;
     private static ImageSource CreateDiamondImage(Color color)
     {
@@ -137,6 +162,7 @@ public sealed class GridItemNode : TreeItemNode
         return image;
     }
 
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         TreeItemNode copy = Copy(new GridItemNode());

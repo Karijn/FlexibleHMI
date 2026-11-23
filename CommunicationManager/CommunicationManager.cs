@@ -5,6 +5,8 @@ using System.Text.Json;
 
 namespace CommunicationManager;
 
+/// <summary>Exchanges mapped property values with external devices over a serial connection.</summary>
+/// <remarks>Lines use the <c>!externalName:value</c> format. Incoming values update matching properties; optionally, initial values and subsequent property changes are sent to the device. Supported values include primitive, date/time, color, struct, and typed-array properties.</remarks>
 public sealed class CommunicationManager : IDisposable
 {
     private readonly IVariableHandler _variableHandler;
@@ -16,6 +18,11 @@ public sealed class CommunicationManager : IDisposable
     private bool _isRunning;
     private bool _disposed;
 
+    /// <summary>Creates a manager using the shared property store, struct registry, and serial device.</summary>
+    /// <param name="variableHandler">The document property store to read and update.</param>
+    /// <param name="structTypeRegistry">The registry used to parse and serialize structured values.</param>
+    /// <param name="serialPortDevice">The serial device used for port discovery and communication.</param>
+    /// <exception cref="ArgumentNullException">A dependency is null.</exception>
     public CommunicationManager(
         IVariableHandler variableHandler,
         IStructTypeRegistry structTypeRegistry,
@@ -27,14 +34,20 @@ public sealed class CommunicationManager : IDisposable
         _variableHandler.VariableChanged += OnVariableChanged;
     }
 
+    /// <summary>Occurs when a communication or value-conversion error is reported.</summary>
     public event EventHandler<CommunicationErrorEventArgs>? ErrorOccurred;
 
+    /// <summary>Occurs when a complete incoming serial line is received while running.</summary>
     public event EventHandler<CommunicationMessageEventArgs>? MessageReceived;
 
+    /// <summary>Occurs when a serial line is successfully written.</summary>
     public event EventHandler<CommunicationMessageEventArgs>? MessageSent;
 
+    /// <summary>Gets serial ports currently available on the system.</summary>
+    /// <returns>The available port names.</returns>
     public IReadOnlyList<string> GetPortNames() => _serialPortDevice.GetPortNames();
 
+    /// <summary>Gets whether this manager currently has an active serial connection.</summary>
     public bool IsRunning
     {
         get
@@ -46,6 +59,18 @@ public sealed class CommunicationManager : IDisposable
         }
     }
 
+    /// <summary>Opens a serial connection and applies the supplied property mappings.</summary>
+    /// <param name="portName">The name of the serial port to open.</param>
+    /// <param name="baudRate">The communication rate, in bits per second.</param>
+    /// <param name="routes">Mappings between protocol names and document properties. Each external name must be unique, trimmed, and omit protocol delimiters and line breaks.</param>
+    /// <exception cref="ObjectDisposedException">The manager has been disposed.</exception>
+    /// <exception cref="ArgumentException">The port name or a route name is invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The baud rate is not positive.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="routes"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">The manager is already running.</exception>
+    /// <exception cref="IOException">The serial port could not be opened.</exception>
+    /// <exception cref="UnauthorizedAccessException">Access to the serial port is denied.</exception>
+    /// <exception cref="PlatformNotSupportedException">Serial communication is not supported on this platform.</exception>
     public void Start(
         string portName,
         int baudRate,
@@ -97,6 +122,13 @@ public sealed class CommunicationManager : IDisposable
         }
     }
 
+    /// <summary>Sends a direct, unmapped line to the connected device.</summary>
+    /// <param name="message">The message text, without line breaks.</param>
+    /// <exception cref="ObjectDisposedException">The manager has been disposed.</exception>
+    /// <exception cref="ArgumentException">The message is empty or contains a line break.</exception>
+    /// <exception cref="InvalidOperationException">The manager is not connected.</exception>
+    /// <exception cref="IOException">The message could not be written to the serial device.</exception>
+    /// <exception cref="UnauthorizedAccessException">Access to the serial device is denied.</exception>
     public void SendMessage(string message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -114,6 +146,7 @@ public sealed class CommunicationManager : IDisposable
         _serialPortDevice.WriteLine(message);
     }
 
+    /// <summary>Stops communication, clears the active mappings, and closes the serial device.</summary>
     public void Stop()
     {
         lock (_syncRoot)
@@ -128,6 +161,7 @@ public sealed class CommunicationManager : IDisposable
         _serialPortDevice.Close();
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposed)

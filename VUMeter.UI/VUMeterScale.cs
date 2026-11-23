@@ -4,7 +4,9 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace VUMeter.UI;
-
+/// <summary>
+/// Provides the WPF view used to configure and display a VU meter.
+/// </summary>
 public partial class VUMeterView
 {
     private static readonly Point Pivot = new(250, 280);

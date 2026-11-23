@@ -1,7 +1,12 @@
 namespace WpfPropertyGrid;
-
+/// <summary>
+/// Builds property descriptors and editable property models for the property grid.
+/// </summary>
 public class PropertyGridDataProvider : IListSource
 {
+    /// <summary>
+    /// Initializes a new instance of PropertyGridDataProvider.
+    /// </summary>
     public PropertyGridDataProvider(PropertyGrid grid, object data)
     {
         ArgumentNullException.ThrowIfNull(grid);
@@ -14,10 +19,21 @@ public class PropertyGridDataProvider : IListSource
 
     bool IListSource.ContainsListCollection => false;
     IList IListSource.GetList() => Properties;
+    /// <summary>
+    /// Gets the grid.
+    /// </summary>
     public PropertyGrid Grid { get; }
+    /// <summary>
+    /// Gets the data.
+    /// </summary>
     public object Data { get; }
+    /// <summary>
+    /// Gets the properties.
+    /// </summary>
     public virtual ObservableCollection<PropertyGridProperty> Properties { get; } = [];
-
+    /// <summary>
+    /// Gets whether the provider has any properties to display.
+    /// </summary>
     public static bool HasProperties(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -31,7 +47,9 @@ public class PropertyGridDataProvider : IListSource
         }
         return false;
     }
-
+    /// <summary>
+    /// Adds a property descriptor and creates its property model.
+    /// </summary>
     public virtual PropertyGridProperty? AddProperty(string propertyName)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
@@ -51,10 +69,18 @@ public class PropertyGridDataProvider : IListSource
         }
         return prop;
     }
-
+    /// <summary>
+    /// Creates a dynamic object using the configured object activator.
+    /// </summary>
     public virtual Utilities.DynamicObject? CreateDynamicObject() => ActivatorService.CreateInstance<Utilities.DynamicObject>();
+    /// <summary>
+    /// Creates the property model associated with a descriptor.
+    /// </summary>
     public virtual PropertyGridProperty CreateProperty() => ActivatorService.CreateInstance<PropertyGridProperty>(this) ?? throw new NotSupportedException();
 
+    /// <summary>
+    /// Populates a property model with descriptor metadata, values, and editor options.
+    /// </summary>
     protected virtual void Describe(PropertyGridProperty property, PropertyDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -124,7 +150,9 @@ public class PropertyGridDataProvider : IListSource
         AddDynamicProperties(descriptor.Attributes.OfType<PropertyGridAttribute>(), property.Attributes);
         AddDynamicProperties(descriptor.PropertyType.GetCustomAttributes<PropertyGridAttribute>(), property.TypeAttributes);
     }
-
+    /// <summary>
+    /// Adds property-grid metadata as dynamic properties on the target object.
+    /// </summary>
     public static void AddDynamicProperties(IEnumerable<PropertyGridAttribute> attributes, Utilities.DynamicObject dynamicObject)
     {
         if (attributes == null || dynamicObject == null)
@@ -139,7 +167,9 @@ public class PropertyGridDataProvider : IListSource
             prop.SetValue(dynamicObject, attribute.Value);
         }
     }
-
+    /// <summary>
+    /// Creates the property model associated with a descriptor.
+    /// </summary>
     public virtual PropertyGridProperty CreateProperty(PropertyDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
@@ -184,6 +214,9 @@ public class PropertyGridDataProvider : IListSource
         return property;
     }
 
+    /// <summary>
+    /// Discovers and creates property models for the selected object.
+    /// </summary>
     protected virtual void ScanProperties()
     {
         Properties.Clear();

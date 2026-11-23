@@ -2,13 +2,16 @@ using System.Windows;
 
 namespace FlexibleHMI.Services;
 
+/// <summary>Loads the application's light and dark resource dictionaries.</summary>
 public sealed class ThemeService : IThemeService
 {
     private const string LightThemeSource = "/FlexibleHMI;component/Themes/LightTheme.xaml";
     private const string DarkThemeSource = "/FlexibleHMI;component/Themes/DarkTheme.xaml";
 
+    /// <inheritdoc/>
     public AppTheme CurrentTheme { get; private set; } = AppTheme.Light;
 
+    /// <inheritdoc/>
     public void ApplyTheme(AppTheme theme)
     {
         var source = theme switch

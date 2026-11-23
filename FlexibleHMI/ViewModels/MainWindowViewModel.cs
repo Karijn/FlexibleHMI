@@ -13,6 +13,7 @@ using ParameterRelayCommand = CommunityToolkit.Mvvm.Input.RelayCommand<object?>;
 
 namespace FlexibleHMI.ViewModels;
 
+/// <summary>Provides document editing state and commands consumed by the main application window.</summary>
 public partial class MainWindowViewModel : ObservableObject
 {
     private readonly IConfirmationService _confirmationService;
@@ -35,6 +36,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly DispatcherTimer _autoSaveTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private int _nextItemNumber = 1;
 
+    /// <summary>Gets or sets the persisted width of the right panel.</summary>
     public double RightPanelWidth
     {
         get => _userSettingsService.RightPanelWidth;
@@ -45,9 +47,11 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets the status text displayed by the main-window panel controls.</summary>
     [ObservableProperty]
     private string _statusText;
 
+    /// <summary>Gets or sets the persisted width of the left panel.</summary>
     public double LeftPanelWidth
     {
         get => _userSettingsService.LeftPanelWidth;
@@ -59,6 +63,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
 
+    /// <summary>Gets or sets whether the left panel is expanded.</summary>
     public bool IsLeftExpanded
     {
         get => _userSettingsService.IsLeftPanelExpanded;
@@ -69,6 +74,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets or sets whether the right panel is expanded.</summary>
     public bool IsRightExpanded
     {
         get => _userSettingsService.IsRightPanelExpanded;
@@ -81,6 +87,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private bool _isMainContentFullScreen;
 
+    /// <summary>Gets or sets whether the main content is full screen; setting it true collapses both side panels.</summary>
     public bool IsMainContentFullScreen
     {
         get => _isMainContentFullScreen;
@@ -97,6 +104,13 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
 
+    /// <summary>Creates the main-window view model and initializes document-manager items and UI commands.</summary>
+    /// <param name="confirmationService">Displays confirmation and unsaved-change dialogs.</param>
+    /// <param name="themeService">Applies and reports the active theme.</param>
+    /// <param name="treeDocumentService">Loads and saves tree documents.</param>
+    /// <param name="treeDocumentProperties">Provides document-level properties and change notifications.</param>
+    /// <param name="userSettingsService">Reads and persists user preferences.</param>
+    /// <param name="creators">The registered tree-item creators keyed by item kind.</param>
     public MainWindowViewModel(
         IConfirmationService confirmationService,
         IThemeService themeService,
@@ -161,76 +175,112 @@ public partial class MainWindowViewModel : ObservableObject
         CaptureManagerData();
     }
 
+    /// <summary>Raised when the UI should scroll to and select the specified tree item.</summary>
     public event Action<TreeItemNode>? TreeItemRevealRequested;
 
+    /// <summary>Raised when the user requests the About window.</summary>
     public event Action? AboutRequested;
 
+    /// <summary>Gets the window title, prefixed with an asterisk while the document has unsaved changes.</summary>
     public string WindowTitle => IsDirty ? "*Flexible HMI" : "Flexible HMI";
 
+    /// <summary>Gets the registered item types available for insertion, excluding required document managers.</summary>
     public ObservableCollection<TreeItemOption> AvailableItems { get; }
 
+    /// <summary>Gets the root-level tree items displayed and edited by the main window.</summary>
     public ObservableCollection<TreeItemNode> RootItems { get; } = new();
 
+    /// <summary>Gets the recent document paths displayed in the main window.</summary>
     public ObservableCollection<string> RecentFiles { get; }
 
+    /// <summary>Gets the command that replaces the current document with a new one.</summary>
     public ICommand NewDocumentCommand { get; }
 
+    /// <summary>Gets the command that opens a recent document path supplied as its command parameter.</summary>
     public ICommand OpenRecentFileCommand { get; }
 
+    /// <summary>Gets the command that adds the selected item type under the selected node, or at the root.</summary>
     public ICommand AddItemCommand { get; }
 
+    /// <summary>Gets the command that inserts the selected item type before the selected node.</summary>
     public ICommand AddBeforeItemCommand { get; }
 
+    /// <summary>Gets the command that inserts the selected item type after the selected node.</summary>
     public ICommand AddAfterItemCommand { get; }
 
+    /// <summary>Gets the command that places the selected node on the move clipboard.</summary>
     public ICommand CutItemCommand { get; }
 
+    /// <summary>Gets the command that places a copy of the selected node on the clipboard.</summary>
     public ICommand CopyItemCommand { get; }
 
+    /// <summary>Gets the command that pastes the clipboard node under the selected node, or at the root.</summary>
     public ICommand PasteItemCommand { get; }
 
+    /// <summary>Gets the command that pastes the clipboard node before the selected node.</summary>
     public ICommand PasteBeforeItemCommand { get; }
 
+    /// <summary>Gets the command that pastes the clipboard node after the selected node.</summary>
     public ICommand PasteAfterItemCommand { get; }
 
+    /// <summary>Gets the command that deletes the selected node and its descendants after confirmation.</summary>
     public ICommand DeleteItemCommand { get; }
 
+    /// <summary>Gets the command that moves the selected node up among its siblings.</summary>
     public ICommand MoveUpItemCommand { get; }
 
+    /// <summary>Gets the command that moves the selected node down among its siblings.</summary>
     public ICommand MoveDownItemCommand { get; }
 
+    /// <summary>Gets the command that moves the selected node out one level in the tree.</summary>
     public ICommand MoveToParentCommand { get; }
 
+    /// <summary>Gets the command that makes the selected node a child of its previous sibling.</summary>
     public ICommand MoveToChildCommand { get; }
 
+    /// <summary>Gets the command that moves the selected node to the first child position among its siblings.</summary>
     public ICommand MoveToFirstChildCommand { get; }
 
+    /// <summary>Gets the command that moves the selected node to the last child position among its siblings.</summary>
     public ICommand MoveToLastChildCommand { get; }
 
+    /// <summary>Gets the command that expands the selected tree node.</summary>
     public ICommand ExpandSelectedNodeCommand { get; }
 
+    /// <summary>Gets the command that collapses the selected tree node.</summary>
     public ICommand CollapseSelectedNodeCommand { get; }
 
+    /// <summary>Gets the command that expands every node in the tree.</summary>
     public ICommand ExpandAllNodesCommand { get; }
 
+    /// <summary>Gets the command that collapses every node in the tree.</summary>
     public ICommand CollapseAllNodesCommand { get; }
 
+    /// <summary>Gets the command that applies the light theme.</summary>
     public ICommand UseLightThemeCommand { get; }
 
+    /// <summary>Gets the command that applies the dark theme.</summary>
     public ICommand UseDarkThemeCommand { get; }
 
+    /// <summary>Gets the command that prompts for and opens a document.</summary>
     public ICommand OpenDocumentCommand { get; }
 
+    /// <summary>Gets the command that saves the current document to its current path.</summary>
     public ICommand SaveDocumentCommand { get; }
 
+    /// <summary>Gets the command that prompts for a destination and saves the document there.</summary>
     public ICommand SaveDocumentAsCommand { get; }
 
+    /// <summary>Gets the command that raises <see cref="AboutRequested"/>.</summary>
     public ICommand AboutCommand { get; }
 
+    /// <summary>Gets the command that starts all tree items implementing the runtime controller contract.</summary>
     public ICommand StartAllFunctionGeneratorsCommand { get; }
 
+    /// <summary>Gets the command that stops all tree items implementing the runtime controller contract.</summary>
     public ICommand StopAllFunctionGeneratorsCommand { get; }
 
+    /// <summary>Gets the current document path, or a label indicating that the document has not been saved.</summary>
     public string CurrentFilePath
     {
         get => _currentFilePath ?? "Unsaved document";
@@ -246,6 +296,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets whether document content, manager data, or document properties have changed since the last save.</summary>
     public bool IsDirty
     {
         get => _isDirty;
@@ -276,6 +327,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets the current application status message shown by the main window.</summary>
     public string StatusMessage
     {
         get => _statusMessage;
@@ -291,10 +343,13 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets whether the light theme is currently active.</summary>
     public bool IsLightTheme => _themeService.CurrentTheme == AppTheme.Light;
 
+    /// <summary>Gets whether the dark theme is currently active.</summary>
     public bool IsDarkTheme => _themeService.CurrentTheme == AppTheme.Dark;
 
+    /// <summary>Gets or sets whether toolbar buttons display their text labels.</summary>
     public bool ShowToolbarText
     {
         get => _userSettingsService.ShowToolbarText;
@@ -317,6 +372,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets or sets whether dirty documents with a file path are periodically auto-saved.</summary>
     public bool AutoSave
     {
         get => _userSettingsService.AutoSave;
@@ -356,6 +412,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets or sets whether closing a dirty document attempts to save it automatically.</summary>
     public bool AutoSaveOnClose
     {
         get => _userSettingsService.AutoSaveOnClose;
@@ -379,6 +436,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets or sets whether the last-used document is loaded when the application starts.</summary>
     public bool AutoLoadLastDocument
     {
         get => _userSettingsService.AutoLoadLastDocument;
@@ -401,6 +459,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets the drag-and-drop guidance or result displayed by the main window.</summary>
     public string DropStatus
     {
         get => _dropStatus;
@@ -416,6 +475,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets or sets the selected item type from the available-items list.</summary>
     public TreeItemOption? SelectedItemOption
     {
         get => _selectedItemOption;
@@ -432,6 +492,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets or sets the selected tree node and updates command availability when it changes.</summary>
     public TreeItemNode? SelectedTreeItem
     {
         get => _selectedTreeItem;
@@ -460,6 +521,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Gets a description of where a newly added item will be placed.</summary>
     public string AddTargetDescription => SelectedTreeItem is null
         ? "New items will be added to the root."
         : $"Selected parent: {SelectedTreeItem.Name} ({SelectedTreeItem.ChildRule}).";
@@ -514,6 +576,7 @@ public partial class MainWindowViewModel : ObservableObject
         RaisePasteCommandsCanExecuteChanged();
     }
 
+    /// <summary>Loads the last-used document at startup when the corresponding preference and path are available.</summary>
     public void LoadLastDocumentAtStartup()
     {
         if (!_userSettingsService.AutoLoadLastDocument ||
@@ -767,6 +830,8 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Attempts to stop runtime activity for every node in the current document.</summary>
+    /// <returns><see langword="true"/> if all nodes stopped successfully; otherwise <see langword="false"/> and the status message reports failures.</returns>
     public bool StopDocumentRuntimeActivity()
     {
         var errors = new List<Exception>();
@@ -805,6 +870,8 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Resolves unsaved changes according to the close preferences and confirmation dialog.</summary>
+    /// <returns><see langword="true"/> if the window may close; otherwise <see langword="false"/>.</returns>
     public bool ConfirmClose()
     {
         _autoSaveTimer.Stop();
@@ -1167,6 +1234,9 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Deletes a node and its descendants after confirming with the user.</summary>
+    /// <param name="item">The node to delete.</param>
+    /// <returns><see langword="true"/> if the node was deleted; otherwise <see langword="false"/>.</returns>
     public bool DeleteItem(TreeItemNode item)
     {
         ArgumentNullException.ThrowIfNull(item);
@@ -1201,6 +1271,12 @@ public partial class MainWindowViewModel : ObservableObject
         return true;
     }
 
+    /// <summary>Determines whether a drag payload can be inserted or moved to the proposed tree location.</summary>
+    /// <param name="data">The dragged node or available-item option.</param>
+    /// <param name="target">The target node, or <see langword="null"/> to target the root.</param>
+    /// <param name="position">The insertion position relative to the target.</param>
+    /// <param name="copy"><see langword="true"/> to copy a dragged node instead of moving it.</param>
+    /// <returns><see langword="true"/> if the proposed drop satisfies tree and item constraints.</returns>
     public bool CanDrop(TreeDragData data, TreeItemNode? target, DropPosition position, bool copy)
     {
         var sourceNode = data.Node;
@@ -1287,6 +1363,12 @@ public partial class MainWindowViewModel : ObservableObject
         return true;
     }
 
+    /// <summary>Applies a valid tree drag-and-drop operation.</summary>
+    /// <param name="data">The dragged node or available-item option.</param>
+    /// <param name="target">The target node, or <see langword="null"/> to target the root.</param>
+    /// <param name="position">The insertion position relative to the target.</param>
+    /// <param name="copy"><see langword="true"/> to copy a dragged node instead of moving it.</param>
+    /// <returns><see langword="true"/> if the item was inserted or moved; otherwise <see langword="false"/>.</returns>
     public bool Drop(TreeDragData data, TreeItemNode? target, DropPosition position, bool copy)
     {
         if (!CanDrop(data, target, position, copy))
@@ -1407,6 +1489,8 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Updates the drag-and-drop status text shown by the main window.</summary>
+    /// <param name="status">The status text to display.</param>
     public void SetDropStatus(string status) => DropStatus = status;
 
     private void MakeCurrentAndReveal(TreeItemNode item)
@@ -1448,6 +1532,8 @@ public partial class MainWindowViewModel : ObservableObject
         return false;
     }
 
+    /// <summary>Sets the application status message and the drag-and-drop status text to the same value.</summary>
+    /// <param name="message">The status message to display.</param>
     public void ReportStatus(string message)
     {
         StatusMessage = message;

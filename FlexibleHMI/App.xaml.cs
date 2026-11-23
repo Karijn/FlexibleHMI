@@ -13,10 +13,13 @@ using System.Windows.Media;
 
 namespace FlexibleHMI;
 
+/// <summary>Starts the application, configures dependency injection, and initializes discovered add-ins.</summary>
 public partial class App : Application
 {
+    /// <summary>Holds the service provider built during application startup, or <see langword="null"/> before startup.</summary>
     public static ServiceProvider? _serviceProvider;
 
+    /// <inheritdoc />
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -141,12 +144,10 @@ public partial class App : Application
         }
     }
 
-    /// <summary>
-    /// Registers add-in services by discovering and initializing IAddInRegistrator implementations from the provided assemblies.
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="assemblies"></param>
-    /// <returns></returns>
+    /// <summary>Discovers add-in registrators in the supplied assemblies and lets each register its services.</summary>
+    /// <param name="services">The service collection to populate.</param>
+    /// <param name="assemblies">The assemblies to inspect; duplicate assembly references are ignored.</param>
+    /// <returns>The instantiated registrators, in discovery order.</returns>
     public static IReadOnlyList<IAddInRegistrator> RegisterAddinServices(IServiceCollection services, IReadOnlyList<Assembly> assemblies)
     {
         //var discoveredAddins = new List<IAddInRegistrator>();
@@ -193,6 +194,7 @@ public partial class App : Application
         }
     }
 
+    /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
         if (_serviceProvider is not null)
@@ -216,12 +218,15 @@ public partial class App : Application
 }
 
 
+/// <summary>Creates leaf tree items, which cannot contain children.</summary>
 public class LeafCreator : TreeItemOption
 {
     //private readonly IServiceProvider _serviceProvider;
 
     //private ServiceProvider _sp;
 
+    /// <summary>Initializes a creator for leaf items.</summary>
+    /// <param name="serviceProvider">The service provider used by the base item-option implementation.</param>
     public LeafCreator(IServiceProvider serviceProvider) :
         base("leaf", "Leaf item", "Test Nodes", "Cannot contain children", TreeItemOption.CreateDiamondImage(Colors.Red), serviceProvider)
     {
@@ -229,27 +234,36 @@ public class LeafCreator : TreeItemOption
     }
 }
 
+/// <summary>Creates tree items that accept at most one child.</summary>
 public class SingleChildCreator : TreeItemOption
 {
-    public SingleChildCreator(IServiceProvider serviceProvider) 
+    /// <summary>Initializes a creator for single-child items.</summary>
+    /// <param name="serviceProvider">The service provider used by the base item-option implementation.</param>
+    public SingleChildCreator(IServiceProvider serviceProvider)
         : base("singlechild", "Single-child item", "Test Nodes", "Can contain at most one child", TreeItemOption.CreateDiamondImage(Colors.Blue), 
             serviceProvider)
     {
     }
 }
 
+/// <summary>Creates collection tree items that accept any number of children.</summary>
 public class CollectionCreator : TreeItemOption
 {
-    public CollectionCreator(IServiceProvider serviceProvider) 
+    /// <summary>Initializes a creator for collection items.</summary>
+    /// <param name="serviceProvider">The service provider used by the base item-option implementation.</param>
+    public CollectionCreator(IServiceProvider serviceProvider)
         : base("collection", "Collection item", "Test Nodes", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Silver),
              serviceProvider)
     {
     }
 }
 
+/// <summary>Creates grid tree items that accept any number of children.</summary>
 public class GridCreator : TreeItemOption
 {
-    public GridCreator(IServiceProvider serviceProvider) 
+    /// <summary>Initializes a creator for grid items.</summary>
+    /// <param name="serviceProvider">The service provider used by the base item-option implementation.</param>
+    public GridCreator(IServiceProvider serviceProvider)
         : base("grid", "Grid item", "Test Nodes", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Gold), 
             serviceProvider)
     { }

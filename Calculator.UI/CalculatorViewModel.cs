@@ -11,12 +11,21 @@ using System.Windows.Media;
 
 namespace Calculator.UI;
 
+/// <summary>
+/// Represents a document item that evaluates expressions against live properties and writes each result to a destination property.
+/// </summary>
 public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, IDocumentItemDetached
 {
     private readonly IVariableHandler _variableHandler;
     private readonly IStructTypeRegistry _structTypeRegistry;
     private bool _isDetached;
 
+    /// <summary>
+    /// Creates a calculator item connected to the specified property handler and structure registry.
+    /// </summary>
+    /// <param name="variableHandler">Provides the live properties read by expressions and written by calculations.</param>
+    /// <param name="structTypeRegistry">Parses and serializes typed structure and array results.</param>
+    /// <exception cref="ArgumentNullException">Either dependency is <see langword="null"/>.</exception>
     public CalculatorViewModel(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry)
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
@@ -29,14 +38,17 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, 
         Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, _structTypeRegistry));
     }
 
+    /// <summary>Gets the editable calculations displayed by the calculator view.</summary>
     public ObservableCollection<CalculatorCalculationViewModel> Calculations { get; } = [];
 
+    /// <inheritdoc/>
     public void OnDocumentItemDetached()
     {
         _isDetached = true;
         _variableHandler.VariableChanged -= OnVariableChanged;
     }
 
+    /// <inheritdoc/>
     public void OnDocumentItemReattached()
     {
         if (_isDetached)
@@ -46,17 +58,23 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, 
         }
     }
 
+    /// <summary>Gets the current property names and scalar structure/array paths available to expressions.</summary>
     public ObservableCollection<string> AvailableProperties { get; } = [];
 
+    /// <summary>Gets or sets whether the calculator section is expanded in the view.</summary>
     [ObservableProperty]
     private bool _isExpanded = true;
 
+    /// <inheritdoc/>
     public override string Kind => CalculatorCreator.jsonkey;
 
+    /// <inheritdoc/>
     public override int MaxChildren => 0;
 
+    /// <inheritdoc/>
     public override string ChildRule => "No Children here";
 
+    /// <inheritdoc/>
     public override bool CanAcceptChildren => false;
 
     [RelayCommand]
@@ -82,6 +100,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, 
         }
     }
 
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         var copy = new CalculatorViewModel(_variableHandler, _structTypeRegistry)
@@ -99,6 +118,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, 
         return copy;
     }
 
+    /// <inheritdoc/>
     public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(
         new CalculatorDocumentSettings(
             Calculations.Select(calculation => new CalculatorSettings(
@@ -108,6 +128,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, 
                 calculation.Enabled)).ToList(),
             IsExpanded));
 
+    /// <inheritdoc/>
     public void LoadDocumentData(JsonElement data)
     {
         List<CalculatorSettings> settings;

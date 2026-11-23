@@ -1,16 +1,27 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// Displays a byte sequence as a hexadecimal dump with configurable row and address formatting.
+/// </summary>
 public class ByteArrayControl : ScrollViewer, IDisposable
 {
+    /// <summary>
+    /// Identifies the source dependency property.
+    /// </summary>
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(object), typeof(ByteArrayControl),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure, OnSourceChanged));
-
+    /// <summary>
+    /// Identifies the row count dependency property.
+    /// </summary>
     public static readonly DependencyProperty RowCountProperty = DependencyProperty.Register("RowCount", typeof(int), typeof(ByteArrayControl),
         new FrameworkPropertyMetadata(16, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange, OnRowCountChanged, (d, o) => OnRowCountCoerce(o)));
-
+    /// <summary>
+    /// Identifies the offset dependency property.
+    /// </summary>
     public static readonly DependencyProperty OffsetProperty = DependencyProperty.Register("Offset", typeof(long), typeof(ByteArrayControl),
         new FrameworkPropertyMetadata(0L, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange, OnOffsetChanged, (d, o) => OnOffsetCoerce(d, o)));
-
+    /// <summary>
+    /// Identifies the add header dependency property.
+    /// </summary>
     public static readonly DependencyProperty AddHeaderProperty = DependencyProperty.Register("AddHeader", typeof(bool), typeof(ByteArrayControl),
         new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange, OnAddHeaderChanged));
 
@@ -20,12 +31,25 @@ public class ByteArrayControl : ScrollViewer, IDisposable
     private Stream? _stream;
     private ScrollBar? _verticalScrollBar;
     private byte[]? _buffer;
-
+    /// <summary>
+    /// Gets or sets the source.
+    /// </summary>
     public object Source { get => GetValue(SourceProperty); set => SetValue(SourceProperty, value); }
+    /// <summary>
+    /// Gets or sets the offset.
+    /// </summary>
     public long Offset { get => (long)GetValue(OffsetProperty); set => SetValue(OffsetProperty, value); }
+    /// <summary>
+    /// Gets or sets the row count.
+    /// </summary>
     public int RowCount { get => (int)GetValue(RowCountProperty); set => SetValue(RowCountProperty, value); }
+    /// <summary>
+    /// Gets or sets the add header.
+    /// </summary>
     public bool AddHeader { get => (bool)GetValue(AddHeaderProperty); set => SetValue(AddHeaderProperty, value); }
-
+    /// <summary>
+    /// Initializes a new instance of ByteArrayControl.
+    /// </summary>
     public ByteArrayControl()
     {
         Margin = new Thickness(5);
@@ -38,6 +62,7 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         Content = _canvas;
     }
 
+    /// <inheritdoc/>
     protected override Size ArrangeOverride(Size arrangeSize)
     {
         var size = base.ArrangeOverride(arrangeSize);
@@ -115,6 +140,9 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         bac.SetupText();
     }
 
+    /// <summary>
+    /// Updates the text rendering surface and canvas dimensions to match the byte source and formatting.
+    /// </summary>
     protected virtual void ResizeContent()
     {
         _text.FontSize = FontSize;
@@ -129,6 +157,9 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         _canvas.Width = _text.DesiredSize.Width + HorizontalOffset;
     }
 
+    /// <summary>
+    /// Reads the visible bytes from the current stream and updates the hexadecimal dump.
+    /// </summary>
     protected virtual void SetupText()
     {
         if (_stream == null)
@@ -151,6 +182,7 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         }
     }
 
+    /// <inheritdoc/>
     protected override Visual GetVisualChild(int index)
     {
         if (base.VisualChildrenCount > index)
@@ -159,6 +191,7 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         return _text;
     }
 
+    /// <inheritdoc/>
     protected override int VisualChildrenCount => base.VisualChildrenCount + 1;
 
     private ScrollBar? VerticalScrollBar
@@ -173,6 +206,7 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnScrollChanged(ScrollChangedEventArgs e)
     {
         base.OnScrollChanged(e);
@@ -207,6 +241,9 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         }
     }
 
+    /// <summary>
+    /// Opens the source as a readable stream and updates the control stream state.
+    /// </summary>
     protected virtual void OpenStream(object source)
     {
         Dispose();
@@ -253,8 +290,13 @@ public class ByteArrayControl : ScrollViewer, IDisposable
             return;
         }
     }
-
+    /// <summary>
+    /// Formats the specified bytes as a hexadecimal dump.
+    /// </summary>
     public static string ToHexaDump(byte[]? bytes) => ToHexaDump(bytes, 0, bytes != null ? bytes.Length : 0, true, 16, 0);
+    /// <summary>
+    /// Formats the specified bytes as a hexadecimal dump.
+    /// </summary>
     public static string ToHexaDump(byte[]? bytes, int offset, int count, bool addHeader, int rowCount, long address)
     {
         bytes ??= [];
@@ -351,8 +393,11 @@ public class ByteArrayControl : ScrollViewer, IDisposable
         }
         return sb.ToString();
     }
-
+    /// <inheritdoc/>
     public void Dispose() { Dispose(disposing: true); GC.SuppressFinalize(this); }
+    /// <summary>
+    /// Releases the stream and child controls when the control is disposed.
+    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)

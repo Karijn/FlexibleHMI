@@ -11,6 +11,9 @@ using System.Windows.Media.Imaging;
 
 namespace FunctionGenerator.UI;
 
+/// <summary>
+/// Represents a document item that generates configured waveforms into live properties and controls its output lifecycle.
+/// </summary>
 public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumentData, IRuntimeStartStopController, IDocumentItemDetached
 {
     private readonly IVariableHandler _variableHandler;
@@ -18,6 +21,9 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
     private int _subscriptionVersion;
     private int _nextOutputNumber = 1;
 
+    /// <summary>Creates a function-generator item connected to the specified live-property handler.</summary>
+    /// <param name="variableHandler">Provides the numeric inputs and output properties used by generated signals.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="variableHandler"/> is <see langword="null"/>.</exception>
     public FunctionGeneratorViewModel(IVariableHandler variableHandler)
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
@@ -27,8 +33,10 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         Outputs.Add(CreateOutput());
     }
 
+    /// <summary>Gets the waveform outputs configured for this item.</summary>
     public ObservableCollection<FunctionOutputViewModel> Outputs { get; } = [];
 
+    /// <inheritdoc/>
     public void OnDocumentItemDetached()
     {
         _isDetached = true;
@@ -37,6 +45,7 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         Stop();
     }
 
+    /// <inheritdoc/>
     public void OnDocumentItemReattached()
     {
         if (_isDetached)
@@ -50,22 +59,30 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         }
     }
 
+    /// <summary>Gets the current integer and double property names available for numeric bindings.</summary>
     public ObservableCollection<string> AvailableProperties { get; } = [];
 
+    /// <summary>Gets the current Boolean property names available for start/stop bindings.</summary>
     public ObservableCollection<string> BooleanProperties { get; } = [];
 
+    /// <summary>Gets or sets the optional Boolean property that starts or stops all outputs.</summary>
     [ObservableProperty]
     private string _startStopPropertyName = string.Empty;
 
+    /// <summary>Gets the status of the global start/stop property binding.</summary>
     [ObservableProperty]
     private string _controlStatus = string.Empty;
 
+    /// <inheritdoc/>
     public override string Kind => FunctionGeneratorCreator.jsonkey;
 
+    /// <inheritdoc/>
     public override int MaxChildren => -1;
 
+    /// <inheritdoc/>
     public override string ChildRule => "Any number of children";
 
+    /// <inheritdoc/>
     public override bool CanAcceptChildren => true;
 
     [RelayCommand]
@@ -99,6 +116,7 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         }
     }
 
+    /// <summary>Requests generation to start for every configured output.</summary>
     public void Start()
     {
         foreach (var output in Outputs)
@@ -107,6 +125,7 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         }
     }
 
+    /// <summary>Stops generation for every configured output.</summary>
     public void Stop()
     {
         foreach (var output in Outputs)
@@ -115,8 +134,10 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         }
     }
 
+    /// <inheritdoc/>
     public override void StopRuntimeActivity() => Stop();
 
+    /// <inheritdoc/>
     public override TreeItemNode Copy()
     {
         var copy = new FunctionGeneratorViewModel(_variableHandler);
@@ -131,6 +152,7 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         return copy;
     }
 
+    /// <inheritdoc/>
     public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(
         new FunctionGeneratorSettings(
             StartStopPropertyName,
@@ -147,6 +169,7 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
                 output.UpdateIntervalPropertyName,
                 output.RunningPropertyName)).ToList()));
 
+    /// <inheritdoc/>
     public void LoadDocumentData(JsonElement data)
     {
         List<FunctionOutputSettings> settings;
@@ -347,6 +370,18 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         string? StartStopPropertyName,
         List<FunctionOutputSettings>? Outputs);
 
+    /// <summary>Stores the persisted settings for one waveform output.</summary>
+    /// <param name="PropertyName">Destination property that receives generated samples.</param>
+    /// <param name="Waveform">Waveform or noise distribution to generate.</param>
+    /// <param name="Frequency">Fallback frequency in hertz.</param>
+    /// <param name="Amplitude">Fallback waveform amplitude.</param>
+    /// <param name="Offset">Fallback waveform offset.</param>
+    /// <param name="UpdateIntervalMilliseconds">Fallback interval between samples in milliseconds.</param>
+    /// <param name="FrequencyPropertyName">Optional numeric property bound to frequency.</param>
+    /// <param name="AmplitudePropertyName">Optional numeric property bound to amplitude.</param>
+    /// <param name="OffsetPropertyName">Optional numeric property bound to offset.</param>
+    /// <param name="UpdateIntervalPropertyName">Optional numeric property bound to the sample interval.</param>
+    /// <param name="RunningPropertyName">Optional Boolean property that controls this output.</param>
     public sealed record FunctionOutputSettings(
         string PropertyName,
         SignalWaveform Waveform,
@@ -361,8 +396,11 @@ public partial class FunctionGeneratorViewModel : TreeItemNode, ITreeItemDocumen
         string? RunningPropertyName = null);
 }
 
+/// <summary>Defines the function-generator option shown by the host when adding a document item.</summary>
 public class FunctionGeneratorCreator : TreeItemOption
 {
+    /// <summary>Creates the function-generator option using the host's service provider.</summary>
+    /// <param name="serviceProvider">Services used by the host when constructing the option.</param>
     public FunctionGeneratorCreator(IServiceProvider serviceProvider)
         : base(jsonkey, "FunctionGenerator", "Properties", "Generate waveforms into properties", 
             GetIcon(),

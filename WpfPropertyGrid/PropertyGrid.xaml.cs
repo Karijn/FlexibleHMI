@@ -1,31 +1,59 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// A WPF control that displays and edits the properties of a selected object.
+/// </summary>
 public partial class PropertyGrid : UserControl
 {
+    /// <summary>
+    /// Identifies the dependency property that controls whether the grid is read-only.
+    /// </summary>
     public static readonly DependencyProperty IsReadOnlyProperty =
         DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(PropertyGrid),
         new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender | FrameworkPropertyMetadataOptions.AffectsMeasure, IsReadOnlyPropertyChanged));
-
+    /// <summary>
+    /// Identifies the dependency property for the read-only cell background brush.
+    /// </summary>
     public static readonly DependencyProperty ReadOnlyBackgroundProperty =
         DependencyProperty.Register(nameof(ReadOnlyBackground), typeof(Brush), typeof(PropertyGrid),
         new FrameworkPropertyMetadata(Brushes.LightSteelBlue, FrameworkPropertyMetadataOptions.AffectsRender));
-
+    /// <summary>
+    /// Identifies the dependency property for the object displayed by the grid.
+    /// </summary>
     public static readonly DependencyProperty SelectedObjectProperty =
         DependencyProperty.Register(nameof(SelectedObject), typeof(object), typeof(PropertyGrid),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender | FrameworkPropertyMetadataOptions.AffectsMeasure, SelectedObjectPropertyChanged));
-
+    /// <summary>
+    /// Identifies the dependency property for the value-editor template selector.
+    /// </summary>
     public static readonly DependencyProperty ValueEditorTemplateSelectorProperty =
         DependencyProperty.Register(nameof(ValueEditorTemplateSelector), typeof(DataTemplateSelector), typeof(PropertyGrid), new FrameworkPropertyMetadata(null));
-
+    /// <summary>
+    /// Identifies the bubbling routed event raised when an editor requests browsing.
+    /// </summary>
     public static readonly RoutedEvent BrowseEvent = EventManager.RegisterRoutedEvent("Browse", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(PropertyGrid));
-
+    /// <summary>
+    /// Gets the routed command that assigns a newly generated GUID.
+    /// </summary>
     public static RoutedCommand NewGuidCommand { get; } = new();
+    /// <summary>
+    /// Gets the routed command that clears a GUID value.
+    /// </summary>
     public static RoutedCommand EmptyGuidCommand { get; } = new();
+    /// <summary>
+    /// Gets the routed command that increments a GUID value.
+    /// </summary>
     public static RoutedCommand IncrementGuidCommand { get; } = new();
+    /// <summary>
+    /// Gets the routed command that raises the Browse event.
+    /// </summary>
     public static RoutedCommand BrowseCommand { get; } = new();
-
+    /// <summary>
+    /// Occurs when a property value in the grid changes.
+    /// </summary>
     public event EventHandler<PropertyGridEventArgs>? PropertyChanged;
-
+    /// <summary>
+    /// Initializes a new instance of the property grid.
+    /// </summary>
     public PropertyGrid()
     {
         DefaultCategoryName = CategoryAttribute.Default.Category;
@@ -38,18 +66,49 @@ public partial class PropertyGrid : UserControl
         CommandBindings.Add(new CommandBinding(BrowseCommand, OnBrowseCommandExecuted));
         DecamelizePropertiesDisplayNames = true;
     }
-
+    /// <summary>
+    /// Gets the collection view source that presents the selected object properties.
+    /// </summary>
     public CollectionViewSource PropertiesSource { get; }
+    /// <summary>
+    /// Gets or sets the default category name.
+    /// </summary>
     public virtual string DefaultCategoryName { get; set; }
+    /// <summary>
+    /// Gets or sets the child editor window offset.
+    /// </summary>
     public virtual double ChildEditorWindowOffset { get; set; }
+    /// <summary>
+    /// Gets or sets the decamelize properties display names.
+    /// </summary>
     public virtual bool DecamelizePropertiesDisplayNames { get; set; }
+    /// <summary>
+    /// Gets the data grid that displays the property rows.
+    /// </summary>
     public DataGrid BaseGrid => PropertiesGrid;
+    /// <summary>
+    /// Occurs when a property editor requests browsing.
+    /// </summary>
     public event RoutedEventHandler Browse { add => AddHandler(BrowseEvent, value); remove => RemoveHandler(BrowseEvent, value); }
+    /// <summary>
+    /// Gets or sets the background brush used for read-only property cells.
+    /// </summary>
     public Brush ReadOnlyBackground { get => (Brush)GetValue(ReadOnlyBackgroundProperty); set => SetValue(ReadOnlyBackgroundProperty, value); }
+    /// <summary>
+    /// Gets or sets the selected object.
+    /// </summary>
     public object SelectedObject { get => GetValue(SelectedObjectProperty); set => SetValue(SelectedObjectProperty, value); }
+    /// <summary>
+    /// Gets or sets whether the grid is read-only.
+    /// </summary>
     public bool IsReadOnly { get => (bool)GetValue(IsReadOnlyProperty); set => SetValue(IsReadOnlyProperty, value); }
+    /// <summary>
+    /// Gets or sets the value editor template selector.
+    /// </summary>
     public DataTemplateSelector ValueEditorTemplateSelector { get => (DataTemplateSelector)GetValue(ValueEditorTemplateSelectorProperty); set => SetValue(ValueEditorTemplateSelectorProperty, value); }
-
+    /// <summary>
+    /// Gets or sets the group by category.
+    /// </summary>
     public bool GroupByCategory
     {
         get => PropertiesSource.GroupDescriptions.Count > 0;
@@ -71,8 +130,13 @@ public partial class PropertyGrid : UserControl
             }
         }
     }
-
+    /// <summary>
+    /// Gets the column that displays property values, or null if it is not present.
+    /// </summary>
     public virtual DataGridColumn? GetValueColumn() => PropertiesGrid.Columns.OfType<DataGridTemplateColumn>().FirstOrDefault(c => c.CellTemplateSelector is PropertyGridDataTemplateSelector);
+    /// <summary>
+    /// Gets the cell content for the supplied property row, or null if unavailable.
+    /// </summary>
     public virtual FrameworkElement? GetValueCellContent(object dataItem)
     {
         ArgumentNullException.ThrowIfNull(dataItem);
@@ -82,7 +146,9 @@ public partial class PropertyGrid : UserControl
 
         return column.GetCellContent(dataItem);
     }
-
+    /// <summary>
+    /// Updates matching bindings in the property-grid cell for this property.
+    /// </summary>
     public virtual void UpdateCellBindings(object dataItem, string? childName, Func<Binding, bool>? where, Action<BindingExpression> action)
     {
         ArgumentNullException.ThrowIfNull(dataItem);
@@ -108,7 +174,9 @@ public partial class PropertyGrid : UserControl
             }
         }
     }
-
+    /// <summary>
+    /// Updates bindings.
+    /// </summary>
     public static void UpdateBindings(UIElement element, Func<Binding, bool>? where, Action<BindingExpression> action)
     {
         ArgumentNullException.ThrowIfNull(element);
@@ -125,6 +193,9 @@ public partial class PropertyGrid : UserControl
         }
     }
 
+    /// <summary>
+    /// Provides the get editor extension point for derived controls.
+    /// </summary>
     protected virtual Window? GetEditor(PropertyGridProperty property, object? parameter)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -225,6 +296,9 @@ public partial class PropertyGrid : UserControl
         typeof(Uri), typeof(Version)
     ]);
 
+    /// <summary>
+    /// Provides the collection editor has only one column extension point for derived controls.
+    /// </summary>
     protected virtual bool CollectionEditorHasOnlyOneColumn(PropertyGridProperty property)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -241,7 +315,9 @@ public partial class PropertyGrid : UserControl
 
         return !PropertyGridDataProvider.HasProperties(property.CollectionItemPropertyType);
     }
-
+    /// <summary>
+    /// Shows the editor associated with the specified property, when one is available.
+    /// </summary>
     public virtual bool? ShowEditor(string propertyName, object parameter)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
@@ -252,7 +328,9 @@ public partial class PropertyGrid : UserControl
 
         return ShowEditor(property, parameter);
     }
-
+    /// <summary>
+    /// Shows the editor associated with the specified property, when one is available.
+    /// </summary>
     public virtual bool? ShowEditor(PropertyGridProperty property, object parameter)
     {
         ArgumentNullException.ThrowIfNull(property);
@@ -277,6 +355,9 @@ public partial class PropertyGrid : UserControl
         return null;
     }
 
+    /// <summary>
+    /// Provides the on browse command executed extension point for derived controls.
+    /// </summary>
     protected virtual void OnBrowseCommandExecuted(object? sender, ExecutedRoutedEventArgs e)
     {
         var browse = new RoutedEventArgs(BrowseEvent, e.OriginalSource);
@@ -295,6 +376,9 @@ public partial class PropertyGrid : UserControl
         }
     }
 
+    /// <summary>
+    /// Provides the on guid command executed extension point for derived controls.
+    /// </summary>
     protected virtual void OnGuidCommandExecuted(object? sender, ExecutedRoutedEventArgs e)
     {
         if (e.OriginalSource is TextBox textBox)
@@ -333,6 +417,9 @@ public partial class PropertyGrid : UserControl
         return ch == 0 ? GuidParameters[0].ToString(CultureInfo.InvariantCulture) : ch.ToString(CultureInfo.InvariantCulture);
     }
 
+    /// <summary>
+    /// Provides the on guid command can execute extension point for derived controls.
+    /// </summary>
     protected virtual void OnGuidCommandCanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
         var property = PropertyGridProperty.FromEvent(e);
@@ -341,8 +428,13 @@ public partial class PropertyGrid : UserControl
             e.CanExecute = true;
         }
     }
-
+    /// <summary>
+    /// Creates a data provider for the selected object and its property grid.
+    /// </summary>
     public virtual PropertyGridDataProvider CreateDataProvider(object value) => ActivatorService.CreateInstance<PropertyGridDataProvider>(this, value) ?? throw new NotSupportedException();
+    /// <summary>
+    /// Creates event arguments for a property-grid notification.
+    /// </summary>
     public virtual PropertyGridEventArgs CreateEventArgs(PropertyGridProperty property, object? context = null) => ActivatorService.CreateInstance<PropertyGridEventArgs>(property, context) ?? throw new NotSupportedException();
 
     private static void IsReadOnlyPropertyChanged(DependencyObject source, DependencyPropertyChangedEventArgs e)
@@ -350,7 +442,9 @@ public partial class PropertyGrid : UserControl
         var grid = (PropertyGrid)source;
         grid.PropertiesSource.Source = grid.PropertiesSource.Source;
     }
-
+    /// <summary>
+    /// Focuses a child editor by locating the element through its binding.
+    /// </summary>
     public static void FocusChildUsingBinding(FrameworkElement element)
     {
         ArgumentNullException.ThrowIfNull(element);
@@ -361,7 +455,9 @@ public partial class PropertyGrid : UserControl
             child?.Focus();
         }
     }
-
+    /// <summary>
+    /// Refreshes the displayed properties for the selected object.
+    /// </summary>
     public static void RefreshSelectedObject(DependencyObject editor)
     {
         foreach (var grid in editor.GetChildren<PropertyGrid>())
@@ -369,7 +465,9 @@ public partial class PropertyGrid : UserControl
             grid.RefreshSelectedObject();
         }
     }
-
+    /// <summary>
+    /// Refreshes the displayed properties for the selected object.
+    /// </summary>
     public virtual void RefreshSelectedObject()
     {
         if (SelectedObject == null)
@@ -424,8 +522,13 @@ public partial class PropertyGrid : UserControl
         }
     }
 
+    /// <summary>
+    /// Provides the on property changed extension point for derived controls.
+    /// </summary>
     protected virtual void OnPropertyChanged(object? sender, PropertyGridEventArgs e) => PropertyChanged?.Invoke(sender, e);
-
+    /// <summary>
+    /// Gets the property model associated with a property descriptor.
+    /// </summary>
     public virtual PropertyGridProperty? GetProperty(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -435,9 +538,14 @@ public partial class PropertyGrid : UserControl
 
         return context.Properties.FirstOrDefault(p => p.Name.EqualsIgnoreCase(name));
     }
-
+    /// <summary>
+    /// Gets the data provider associated with this property grid.
+    /// </summary>
     public virtual PropertyGridDataProvider? GetDataProvider() => PropertiesSource.Source as PropertyGridDataProvider;
 
+    /// <summary>
+    /// Provides the on source property changed extension point for derived controls.
+    /// </summary>
     protected virtual void OnSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e == null || e.PropertyName == null)
@@ -457,7 +565,9 @@ public partial class PropertyGrid : UserControl
             OnPropertyChanged(this, CreateEventArgs(property));
         }
     }
-
+    /// <summary>
+    /// Updates the property editor after its toggle-button state changes.
+    /// </summary>
     public virtual void OnToggleButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (e.OriginalSource is ToggleButton button)
@@ -522,6 +632,9 @@ public partial class PropertyGrid : UserControl
         }
     }
 
+    /// <summary>
+    /// Provides the on uielement preview key up extension point for derived controls.
+    /// </summary>
     protected virtual void OnUIElementPreviewKeyUp(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Space)
@@ -539,6 +652,9 @@ public partial class PropertyGrid : UserControl
         }
     }
 
+    /// <summary>
+    /// Provides the on editor window save executed extension point for derived controls.
+    /// </summary>
     protected virtual void OnEditorWindowSaveExecuted(object? sender, ExecutedRoutedEventArgs e)
     {
         var window = (Window)sender!;
@@ -548,6 +664,9 @@ public partial class PropertyGrid : UserControl
         }
     }
 
+    /// <summary>
+    /// Provides the on editor window save can execute extension point for derived controls.
+    /// </summary>
     protected virtual void OnEditorWindowSaveCanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
         var window = (Window)sender!;
@@ -560,6 +679,9 @@ public partial class PropertyGrid : UserControl
         e.CanExecute = true;
     }
 
+    /// <summary>
+    /// Provides the on editor window close executed extension point for derived controls.
+    /// </summary>
     protected virtual void OnEditorWindowCloseExecuted(object? sender, ExecutedRoutedEventArgs e)
     {
         var window = (Window)sender!;
@@ -572,6 +694,9 @@ public partial class PropertyGrid : UserControl
         window.Close();
     }
 
+    /// <summary>
+    /// Provides the on editor window close can execute extension point for derived controls.
+    /// </summary>
     protected virtual void OnEditorWindowCloseCanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
         var window = (Window)sender!;
@@ -584,8 +709,17 @@ public partial class PropertyGrid : UserControl
         e.CanExecute = true;
     }
 
+    /// <summary>
+    /// Provides the on editor selector selection changed extension point for derived controls.
+    /// </summary>
     protected virtual void OnEditorSelectorSelectionChanged(object? sender, SelectionChangedEventArgs e) => OnEditorSelectorSelectionChanged(this, "CollectionEditorPropertiesGrid", sender, e);
+    /// <summary>
+    /// Updates the property editor after the selected editor changes.
+    /// </summary>
     public static void OnEditorSelectorSelectionChanged(string childPropertyGridName, object sender, SelectionChangedEventArgs e) => OnEditorSelectorSelectionChanged(null, childPropertyGridName, sender, e);
+    /// <summary>
+    /// Updates the property editor after the selected editor changes.
+    /// </summary>
     public static void OnEditorSelectorSelectionChanged(PropertyGrid? parentGrid, string childPropertyGridName, object? sender, SelectionChangedEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(childPropertyGridName);

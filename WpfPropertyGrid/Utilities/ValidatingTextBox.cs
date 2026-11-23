@@ -1,5 +1,7 @@
 ﻿namespace WpfPropertyGrid.Utilities;
-
+/// <summary>
+/// Provides text-box input validation and formatted text handling.
+/// </summary>
 public class ValidatingTextBox : TextBox
 {
     private bool _inEvents;
@@ -9,22 +11,38 @@ public class ValidatingTextBox : TextBox
     private int _selectionLength;
 
     // validates entered text at char level, but globally
+    /// <summary>
+    /// Occurs when pre validate text.
+    /// </summary>
     public event EventHandler<ValidateTextEventArgs>? PreValidateText;
 
     // validates before losing focus
+    /// <summary>
+    /// Occurs when validate text.
+    /// </summary>
     public event EventHandler<ValidateTextEventArgs>? ValidateText;
-
+    /// <summary>
+    /// Gets or sets the validate.
+    /// </summary>
     public virtual bool Validate { get; set; } = true;
 
+    /// <summary>
+    /// Raises the pre-validation event before the text is validated.
+    /// </summary>
     protected virtual void OnPreValidateText(object sender, ValidateTextEventArgs e) => PreValidateText?.Invoke(this, e);
+    /// <summary>
+    /// Validates the current text and reports any validation error.
+    /// </summary>
     protected virtual void OnValidateText(object sender, ValidateTextEventArgs e) => ValidateText?.Invoke(this, e);
 
+    /// <inheritdoc/>
     protected override void OnGotFocus(RoutedEventArgs e)
     {
         base.OnGotFocus(e);
         _initalText = Text;
     }
 
+    /// <inheritdoc/>
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);
@@ -43,6 +61,7 @@ public class ValidatingTextBox : TextBox
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         if (!Validate)
@@ -56,6 +75,7 @@ public class ValidatingTextBox : TextBox
         _textBefore = Text;
     }
 
+    /// <inheritdoc/>
     protected override void OnTextChanged(TextChangedEventArgs e)
     {
         if (!Validate)
@@ -87,11 +107,22 @@ public class ValidatingTextBox : TextBox
         }
     }
 }
-
+/// <summary>
+/// Provides numeric text input with parsing and range validation.
+/// </summary>
 public abstract class NumberTextBox<T> : ValidatingTextBox where T : struct, INumberBase<T>, IMinMaxValue<T>, IComparisonOperators<T, T, bool>
 {
+    /// <summary>
+    /// Gets or sets is floating point for derived controls.
+    /// </summary>
     protected virtual bool IsFloatingPoint => false;
+    /// <summary>
+    /// Gets or sets is empty valid for derived controls.
+    /// </summary>
     protected virtual bool IsEmptyValid => true;
+    /// <summary>
+    /// Gets or sets is signed for derived controls.
+    /// </summary>
     protected virtual bool IsSigned
     {
         get
@@ -102,9 +133,17 @@ public abstract class NumberTextBox<T> : ValidatingTextBox where T : struct, INu
             return true;
         }
     }
-
+    /// <summary>
+    /// Gets or sets the min value.
+    /// </summary>
     public T? MinValue { get; set; }
+    /// <summary>
+    /// Gets or sets the max value.
+    /// </summary>
     public T? MaxValue { get; set; }
+    /// <summary>
+    /// Gets the value.
+    /// </summary>
     public T Value
     {
         get
@@ -115,7 +154,11 @@ public abstract class NumberTextBox<T> : ValidatingTextBox where T : struct, INu
         }
     }
 
+    /// <summary>
+    /// Provides the is valid digit extension point for derived controls.
+    /// </summary>
     protected virtual bool IsValidDigit(char c) => char.IsAsciiDigit(c);
+    /// <inheritdoc/>
     protected override void OnValidateText(object sender, ValidateTextEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(e.Text))
@@ -168,6 +211,7 @@ public abstract class NumberTextBox<T> : ValidatingTextBox where T : struct, INu
         e.Cancel = true;
     }
 
+    /// <inheritdoc/>
     protected override void OnPreValidateText(object sender, ValidateTextEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(e.Text))
@@ -212,69 +256,106 @@ public abstract class NumberTextBox<T> : ValidatingTextBox where T : struct, INu
         }
     }
 }
-
+/// <summary>
+/// Provides signed-integer text input with range validation.
+/// </summary>
 public abstract class SignedIntegerTextBox<T> : NumberTextBox<T> where T : struct, ISignedNumber<T>, IMinMaxValue<T>, IComparisonOperators<T, T, bool>
 {
 }
-
+/// <summary>
+/// Provides unsigned-integer text input with range validation.
+/// </summary>
 public abstract class UnsignedIntegerTextBox<T> : NumberTextBox<T> where T : struct, IUnsignedNumber<T>, IMinMaxValue<T>, IComparisonOperators<T, T, bool>
 {
+    /// <inheritdoc/>
     protected override bool IsSigned => false;
 }
-
+/// <summary>
+/// Provides floating-point text input with range validation.
+/// </summary>
 public abstract class FloatingPointNumberTextBox<T> : NumberTextBox<T> where T : struct, IFloatingPoint<T>, IMinMaxValue<T>, IComparisonOperators<T, T, bool>
 {
+    /// <inheritdoc/>
     protected override bool IsFloatingPoint => true;
 }
-
+/// <summary>
+/// Provides the sbyte text box functionality.
+/// </summary>
 public class SByteTextBox : SignedIntegerTextBox<sbyte>
 {
 }
-
+/// <summary>
+/// Provides the byte text box functionality.
+/// </summary>
 public class ByteTextBox : UnsignedIntegerTextBox<byte>
 {
 }
-
+/// <summary>
+/// Provides the int16 text box functionality.
+/// </summary>
 public class Int16TextBox : SignedIntegerTextBox<short>
 {
 }
-
+/// <summary>
+/// Provides the int32 text box functionality.
+/// </summary>
 public class Int32TextBox : SignedIntegerTextBox<int>
 {
 }
-
+/// <summary>
+/// Provides the int64 text box functionality.
+/// </summary>
 public class Int64TextBox : SignedIntegerTextBox<long>
 {
 }
-
+/// <summary>
+/// Provides the uint16 text box functionality.
+/// </summary>
 public class UInt16TextBox : UnsignedIntegerTextBox<ushort>
 {
 }
-
+/// <summary>
+/// Provides the uint32 text box functionality.
+/// </summary>
 public class UInt32TextBox : UnsignedIntegerTextBox<uint>
 {
 }
-
+/// <summary>
+/// Provides the uint64 text box functionality.
+/// </summary>
 public class UInt64TextBox : UnsignedIntegerTextBox<ulong>
 {
 }
-
+/// <summary>
+/// Provides the double text box functionality.
+/// </summary>
 public class DoubleTextBox : FloatingPointNumberTextBox<double>
 {
 }
-
+/// <summary>
+/// Provides the single text box functionality.
+/// </summary>
 public class SingleTextBox : FloatingPointNumberTextBox<float>
 {
 }
-
+/// <summary>
+/// Provides the decimal text box functionality.
+/// </summary>
 public class DecimalTextBox : FloatingPointNumberTextBox<decimal>
 {
 }
-
+/// <summary>
+/// Provides text input for a color value.
+/// </summary>
 public class ColorTextBox : ValidatingTextBox
 {
+    /// <summary>
+    /// Formats the current value according to the supplied format and culture.
+    /// </summary>
     public static string Format(Color color) => $"{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
-
+    /// <summary>
+    /// Gets the value.
+    /// </summary>
     public Color Value
     {
         get
@@ -284,6 +365,7 @@ public class ColorTextBox : ValidatingTextBox
         }
     }
 
+    /// <inheritdoc/>
     protected override void OnValidateText(object sender, ValidateTextEventArgs e)
     {
         base.OnValidateText(sender, e);
@@ -291,6 +373,7 @@ public class ColorTextBox : ValidatingTextBox
         e.ReplacementText = Format(value);
     }
 
+    /// <inheritdoc/>
     protected override void OnPreValidateText(object sender, ValidateTextEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(e.Text))

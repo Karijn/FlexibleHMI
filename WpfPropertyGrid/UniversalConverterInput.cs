@@ -1,17 +1,48 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// Describes an input value and its matching condition.
+/// </summary>
 public class UniversalConverterInput
 {
+    /// <summary>
+    /// Gets or sets the value.
+    /// </summary>
     public virtual object? Value { get; set; }
+    /// <summary>
+    /// Gets or sets the value to compare.
+    /// </summary>
     public virtual object? ValueToCompare { get; set; }
+    /// <summary>
+    /// Gets or sets the minimum value.
+    /// </summary>
     public virtual object? MinimumValue { get; set; }
+    /// <summary>
+    /// Gets or sets the maximum value.
+    /// </summary>
     public virtual object? MaximumValue { get; set; }
+    /// <summary>
+    /// Gets or sets the converter parameter.
+    /// </summary>
     public virtual object? ConverterParameter { get; set; }
+    /// <summary>
+    /// Gets or sets the options.
+    /// </summary>
     public virtual UniversalConverterOptions Options { get; set; } = UniversalConverterOptions.Convert;
+    /// <summary>
+    /// Gets or sets the operator.
+    /// </summary>
     public virtual UniversalConverterOperator Operator { get; set; }
+    /// <summary>
+    /// Gets or sets the reverse.
+    /// </summary>
     public virtual bool Reverse { get; set; }
+    /// <summary>
+    /// Gets or sets the string comparison.
+    /// </summary>
     public virtual StringComparison StringComparison { get; set; } = StringComparison.CurrentCultureIgnoreCase;
-
+    /// <summary>
+    /// Creates a copy of this converter input and its settings.
+    /// </summary>
     public virtual UniversalConverterInput Clone() => new()
     {
         MaximumValue = MaximumValue,
@@ -81,7 +112,9 @@ public class UniversalConverterInput
         }
         return str;
     }
-
+    /// <summary>
+    /// Determines whether the supplied value satisfies this input condition.
+    /// </summary>
     public virtual bool Matches(IFormatProvider? provider = null)
     {
         var ret = false;

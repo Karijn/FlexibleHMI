@@ -1,7 +1,10 @@
 ﻿namespace WpfPropertyGrid;
-
+/// <summary>
+/// Formats identifier-like text for display using decamelization options.
+/// </summary>
 public class BaseDecamelizer : IDecamelizer
 {
+    /// <inheritdoc/>
     public virtual string? Decamelize(string? text, DecamelizeOptions? options)
     {
         if (string.IsNullOrEmpty(text))

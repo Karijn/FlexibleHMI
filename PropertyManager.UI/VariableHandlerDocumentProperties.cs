@@ -7,11 +7,15 @@ using System.Windows;
 
 namespace PropertyManager.UI;
 
+/// <summary>Persists shared property values and struct definitions in a document.</summary>
 public sealed class VariableHandlerDocumentProperties : ITreeDocumentProperties
 {
     private readonly IVariableHandler _variableHandler;
     private readonly IStructTypeRegistry _structTypeRegistry;
 
+    /// <summary>Creates a document adapter for the shared property store and type registry.</summary>
+    /// <param name="variableHandler">The shared variable store.</param>
+    /// <param name="structTypeRegistry">The registry used to validate and serialize typed values.</param>
     public VariableHandlerDocumentProperties(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry)
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
@@ -20,8 +24,12 @@ public sealed class VariableHandlerDocumentProperties : ITreeDocumentProperties
         _structTypeRegistry.Changed += OnStructTypesChanged;
     }
 
+    /// <summary>Occurs when a shared variable or struct definition changes.</summary>
     public event EventHandler? Changed;
 
+    /// <summary>Serializes the current definitions and supported property values.</summary>
+    /// <returns>The document properties to save.</returns>
+    /// <exception cref="InvalidDataException">A property has an unsupported type or invalid value.</exception>
     public IReadOnlyList<TreeDocumentProperty> GetProperties()
     {
         var properties = _structTypeRegistry.GetDefinitions()
@@ -84,6 +92,9 @@ public sealed class VariableHandlerDocumentProperties : ITreeDocumentProperties
         return properties;
     }
 
+    /// <summary>Validates document properties and replaces the current definitions and values.</summary>
+    /// <param name="properties">The serialized definitions and values to load.</param>
+    /// <exception cref="InvalidDataException">A definition or property is invalid.</exception>
     public void LoadProperties(IReadOnlyList<TreeDocumentProperty> properties)
     {
         ArgumentNullException.ThrowIfNull(properties);

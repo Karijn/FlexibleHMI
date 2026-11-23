@@ -15,7 +15,7 @@ public class AddinRegistrator : IAddInRegistrator
     /// <summary>
     /// Registers the add-in services with the provided service collection.
     /// </summary>
-    /// <param name="services"></param>
+    /// <param name="services">The collection receiving the Property Manager services.</param>
     public void RegisterAddIn(IServiceCollection services)
     {
         services.AddSingleton<IVariableHandler, VariableHandler>();
@@ -28,8 +28,8 @@ public class AddinRegistrator : IAddInRegistrator
     /// <summary>
     /// Initializes the add-in with the provided service provider and data template manager.
     /// </summary>
-    /// <param name="serviceProvider"></param>
-    /// <param name="dataTemplateManager"></param>
+    /// <param name="serviceProvider">The application service provider.</param>
+    /// <param name="dataTemplateManager">The manager receiving the view template registration.</param>
     public void InitializeAddIn(ServiceProvider serviceProvider, IDataTemplateManager dataTemplateManager)
     {
         dataTemplateManager.RegisterDataTemplate<PropertyManagerViewModel, PropertyManagerView>();

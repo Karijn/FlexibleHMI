@@ -10,12 +10,16 @@ using System.Windows;
 
 namespace PropertyManager.UI;
 
+/// <summary>Manages property and struct editors for a document-tree item.</summary>
 public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentData, IDocumentItemDetached
 {
     private readonly IVariableHandler _variableHandler;
     private readonly IStructTypeRegistry _structTypeRegistry;
     private bool _isDetached;
 
+    /// <summary>Creates an editor connected to the shared property store and type registry.</summary>
+    /// <param name="variableHandler">The shared variable store.</param>
+    /// <param name="structTypeRegistry">The registry of struct definitions.</param>
     public PropertyManagerViewModel(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry)
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
@@ -30,8 +34,10 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         RefreshStructTypes();
     }
 
+    /// <summary>Gets the property rows displayed in the editor.</summary>
     public ObservableCollection<NameValue> Properties { get; } = [];
 
+    /// <summary>Unsubscribes from shared property and type changes when the item is detached.</summary>
     public void OnDocumentItemDetached()
     {
         _isDetached = true;
@@ -39,6 +45,7 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         _structTypeRegistry.Changed -= OnStructTypesChanged;
     }
 
+    /// <summary>Restores change subscriptions after the item is reattached.</summary>
     public void OnDocumentItemReattached()
     {
         if (_isDetached)
@@ -49,53 +56,72 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         }
     }
 
+    /// <summary>Gets the property types offered by the editor.</summary>
     public ObservableCollection<string> PropertyTypes { get; } = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color", "Struct", "Array"];
 
+    /// <summary>Gets the registered struct type names.</summary>
     public ObservableCollection<string> StructTypeNames { get; } = [];
 
+    /// <summary>Gets suggested types for struct fields.</summary>
     public ObservableCollection<string> StructFieldTypes { get; } = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color"];
 
+    /// <summary>Gets suggested array element types.</summary>
     public ObservableCollection<string> ArrayElementTypes { get; } = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color"];
 
+    /// <summary>Gets the fields in the current struct editor.</summary>
     public ObservableCollection<StructFieldViewModel> StructFields { get; } = [];
 
+    /// <summary>Gets the registered struct definitions displayed by the editor.</summary>
     public ObservableCollection<StructTypeDefinition> StructTypes { get; } = [];
 
+    /// <summary>Gets or sets whether the editor is expanded.</summary>
     [ObservableProperty]
     private bool _isExpanded = true;
 
+    /// <summary>Gets or sets the selected property row.</summary>
     [ObservableProperty]
     private NameValue? _selectedProperty;
 
+    /// <summary>Gets or sets the property name being edited.</summary>
     [ObservableProperty]
     private string _propertyName = string.Empty;
 
+    /// <summary>Gets or sets the selected property type.</summary>
     [ObservableProperty]
     private string _selectedType = "Integer";
 
+    /// <summary>Gets or sets the text entered for the property value.</summary>
     [ObservableProperty]
     private string _valueInput = string.Empty;
 
+    /// <summary>Gets or sets the Boolean value being edited.</summary>
     [ObservableProperty]
     private bool _booleanValue;
 
+    /// <summary>Gets or sets the editor's error message.</summary>
     [ObservableProperty]
     private string _errorMessage = string.Empty;
 
+    /// <summary>Gets or sets the selected struct type for a property.</summary>
     [ObservableProperty]
     private string? _selectedStructType;
 
+    /// <summary>Gets or sets the selected array element type.</summary>
     [ObservableProperty]
     private string _selectedArrayElementType = "Integer";
 
+    /// <summary>Gets or sets the struct definition selected for editing.</summary>
     [ObservableProperty]
     private StructTypeDefinition? _selectedStructTypeDefinition;
 
+    /// <summary>Gets or sets the struct type name being edited.</summary>
     [ObservableProperty]
     private string _structTypeName = string.Empty;
 
+    /// <summary>Gets whether an existing property is selected for editing.</summary>
     public bool IsEditing => SelectedProperty is not null;
 
+    /// <summary>Gets whether an existing struct type is selected for editing.</summary>
     public bool IsEditingStructType => SelectedStructTypeDefinition is not null;
 
     [RelayCommand]
@@ -555,16 +581,24 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         return type.Length > 0;
     }
 
+    /// <inheritdoc />
     public override string Kind => PropertyManagerCreator.jsonkey;
 
+    /// <inheritdoc />
     public override int MaxChildren => 0;
 
+    /// <inheritdoc />
     public override string ChildRule => "No Children here";
 
+    /// <inheritdoc />
     public override bool CanAcceptChildren => false;
 
+    /// <summary>Serializes the editor's expansion state.</summary>
+    /// <returns>The document item settings.</returns>
     public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(new PropertyManagerDocumentSettings(IsExpanded));
 
+    /// <summary>Restores the editor's expansion state.</summary>
+    /// <param name="data">The serialized document item settings.</param>
     public void LoadDocumentData(JsonElement data)
     {
         var settings = data.Deserialize<PropertyManagerDocumentSettings>()
@@ -572,6 +606,7 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         IsExpanded = settings.IsExpanded;
     }
 
+    /// <inheritdoc />
     public override TreeItemNode Copy()
     {
         var copy = new PropertyManagerViewModel(_variableHandler, _structTypeRegistry)
