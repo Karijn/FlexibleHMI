@@ -21,6 +21,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly ITreeDocumentProperties _treeDocumentProperties;
     private readonly IUserSettingsService _userSettingsService;
     private readonly IDictionary<string, TreeItemOption> _creators;
+    private static readonly string[] RequiredManagerKinds = ["propertymanager", "calculation", "functiongenerator", "communicationManager"];
     private TreeItemOption? _selectedItemOption;
     private TreeItemNode? _selectedTreeItem;
     private TreeItemNode? _clipboardItem;
@@ -29,6 +30,7 @@ public partial class MainWindowViewModel : ObservableObject
     private string? _currentFilePath;
     private string _statusMessage = "Ready.";
     private bool _isDirty;
+    private string[] _savedManagerData = [];
     private readonly HashSet<IDocumentDataChangeNotifier> _documentDataNotifiers = [];
     private readonly DispatcherTimer _autoSaveTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private int _nextItemNumber = 1;
@@ -116,7 +118,7 @@ public partial class MainWindowViewModel : ObservableObject
         //var creators = _serviceProvider.GetRequiredService<IDictionary<string, TreeItemOption>>();
 
 
-        AvailableItems = new ObservableCollection<TreeItemOption>(creators.Values);
+        AvailableItems = new ObservableCollection<TreeItemOption>(creators.Values.Where(option => !IsRequiredManager(option.Kind)));
         //AvailableItems = new ObservableCollection<TreeItemOption>
         //{
         //    new("Leaf", "Leaf item", "Test Nodes", "Cannot contain children", TreeItemOption.CreateDiamondImage(Colors.Red), () => new LeafItemNode()),
@@ -152,7 +154,11 @@ public partial class MainWindowViewModel : ObservableObject
         OpenRecentFileCommand = new ParameterRelayCommand(OpenRecentFile, parameter => parameter is string);
         SaveDocumentCommand = new RelayCommand(() => SaveDocument(false), () => true);
         SaveDocumentAsCommand = new RelayCommand(() => SaveDocument(true), () => true);
+        StartAllFunctionGeneratorsCommand = new RelayCommand(StartAllFunctionGenerators);
+        StopAllFunctionGeneratorsCommand = new RelayCommand(StopAllFunctionGenerators);
         AboutCommand = new RelayCommand(() => AboutRequested?.Invoke());
+        EnsureRequiredManagers();
+        CaptureManagerData();
     }
 
     public event Action<TreeItemNode>? TreeItemRevealRequested;
@@ -220,6 +226,10 @@ public partial class MainWindowViewModel : ObservableObject
     public ICommand SaveDocumentAsCommand { get; }
 
     public ICommand AboutCommand { get; }
+
+    public ICommand StartAllFunctionGeneratorsCommand { get; }
+
+    public ICommand StopAllFunctionGeneratorsCommand { get; }
 
     public string CurrentFilePath
     {
@@ -472,7 +482,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void NewDocument()
     {
-        if ((RootItems.Count > 0 || _treeDocumentProperties.GetProperties().Count > 0) && !_confirmationService.Confirm(
+        if ((IsDirty || HasManagerChanges() || RootItems.Any(item => !IsRequiredManager(item.Kind)) || _treeDocumentProperties.GetProperties().Count > 0) && !_confirmationService.Confirm(
                 "Discard the current tree and properties and create a new document? This cannot be undone.",
                 "New document"))
         {
@@ -484,13 +494,16 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        _treeDocumentProperties.LoadProperties([]);
         foreach (var item in RootItems)
         {
             UnsubscribeDocumentDataChanges(item);
+            DetachDocumentItem(item);
         }
 
+        _treeDocumentProperties.LoadProperties([]);
         RootItems.Clear();
+        EnsureRequiredManagers();
+        CaptureManagerData();
         SelectedTreeItem = null;
         _clipboardItem = null;
         _currentFilePath = null;
@@ -531,9 +544,11 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void OpenDocument(string? filePath)
     {
+        LoadedTreeDocument? document = null;
+        var documentInstalled = false;
         try
         {
-            var document = filePath is null
+            document = filePath is null
                 ? _treeDocumentService.Load()
                 : _treeDocumentService.Load(filePath);
             if (document is null)
@@ -541,7 +556,7 @@ public partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            if ((RootItems.Count > 0 || _treeDocumentProperties.GetProperties().Count > 0) && !_confirmationService.Confirm(
+            if ((IsDirty || HasManagerChanges() || RootItems.Any(item => !IsRequiredManager(item.Kind)) || _treeDocumentProperties.GetProperties().Count > 0) && !_confirmationService.Confirm(
                     "Replace the current tree and properties with the opened document? This cannot be undone.",
                     "Open document"))
             {
@@ -553,10 +568,32 @@ public partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            _treeDocumentProperties.LoadProperties(document.Properties);
             foreach (var item in RootItems)
             {
                 UnsubscribeDocumentDataChanges(item);
+                DetachDocumentItem(item);
+            }
+
+            try
+            {
+                _treeDocumentProperties.LoadProperties(document.Properties);
+            }
+            catch (Exception exception) when (exception is IOException or JsonException or InvalidOperationException)
+            {
+                foreach (var item in EnumerateTreeItems(RootItems))
+                {
+                    if (item is IDocumentItemDetached detached)
+                    {
+                        detached.OnDocumentItemReattached();
+                    }
+                }
+
+                foreach (var item in RootItems)
+                {
+                    SubscribeDocumentDataChanges(item);
+                }
+
+                throw;
             }
 
             RootItems.Clear();
@@ -566,6 +603,9 @@ public partial class MainWindowViewModel : ObservableObject
                 SubscribeDocumentDataChanges(item);
             }
 
+            documentInstalled = true;
+            EnsureRequiredManagers();
+            CaptureManagerData();
             SelectedTreeItem = null;
             _clipboardItem = null;
             CurrentFilePath = document.FilePath;
@@ -582,7 +622,51 @@ public partial class MainWindowViewModel : ObservableObject
             StatusMessage = $"Could not open document: {exception.Message}";
             DropStatus = StatusMessage;
         }
+        finally
+        {
+            if (document is not null && !documentInstalled)
+            {
+                foreach (var item in EnumerateTreeItems(document.Items))
+                {
+                    if (item is IDocumentItemDetached detached)
+                    {
+                        detached.OnDocumentItemDetached();
+                    }
+                }
+            }
+        }
     }
+
+    private static bool IsRequiredManager(string kind) => RequiredManagerKinds.Contains(kind, StringComparer.Ordinal);
+
+    private void EnsureRequiredManagers()
+    {
+        foreach (var kind in RequiredManagerKinds)
+        {
+            if (RootItems.Any(item => item.Kind == kind))
+            {
+                continue;
+            }
+
+            if (!_creators.TryGetValue(kind, out var creator))
+            {
+                throw new InvalidOperationException($"Required document manager '{kind}' is not available. Check the installed add-ins.");
+            }
+
+            var manager = creator.Create() ?? throw new InvalidOperationException($"Could not create required document manager '{kind}'.");
+            RootItems.Add(manager);
+            SubscribeDocumentDataChanges(manager);
+        }
+    }
+
+    private string[] GetManagerData() => EnumerateTreeItems(RootItems)
+        .Where(item => IsRequiredManager(item.Kind) && item is ITreeItemDocumentData)
+        .Select(item => ((ITreeItemDocumentData)item).SaveDocumentData().GetRawText())
+        .ToArray();
+
+    private void CaptureManagerData() => _savedManagerData = GetManagerData();
+
+    private bool HasManagerChanges() => !_savedManagerData.SequenceEqual(GetManagerData(), StringComparer.Ordinal);
 
     private void OnDocumentPropertiesChanged(object? sender, EventArgs e)
     {
@@ -648,6 +732,7 @@ public partial class MainWindowViewModel : ObservableObject
             }
 
             CurrentFilePath = path;
+            CaptureManagerData();
             IsDirty = false;
             AddRecentFile(path);
             SaveLastDocumentPath(path);
@@ -663,6 +748,22 @@ public partial class MainWindowViewModel : ObservableObject
             StatusMessage = $"Could not save document: {exception.Message}";
             DropStatus = StatusMessage;
             return false;
+        }
+    }
+
+    private void StartAllFunctionGenerators()
+    {
+        foreach (var controller in EnumerateTreeItems(RootItems).OfType<IRuntimeStartStopController>())
+        {
+            controller.Start();
+        }
+    }
+
+    private void StopAllFunctionGenerators()
+    {
+        foreach (var controller in EnumerateTreeItems(RootItems).OfType<IRuntimeStartStopController>())
+        {
+            controller.Stop();
         }
     }
 
@@ -708,7 +809,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         _autoSaveTimer.Stop();
 
-        if (!IsDirty)
+        if (!IsDirty && !HasManagerChanges())
         {
             return true;
         }
@@ -826,33 +927,32 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private bool CanMoveSelectedUp() =>
-        SelectedTreeItem is not null && GetSiblings(SelectedTreeItem).IndexOf(SelectedTreeItem) > 0;
+        SelectedTreeItem is { } item && FindVisibleSiblingIndex(GetSiblings(item), item, -1) >= 0;
 
-    private bool CanMoveSelectedDown()
+    private bool CanMoveSelectedDown() =>
+        SelectedTreeItem is { } item && FindVisibleSiblingIndex(GetSiblings(item), item, 1) >= 0;
+
+    private bool CanMoveSelectedToFirstChild() => CanMoveSelectedUp();
+
+    private bool CanMoveSelectedToLastChild() => CanMoveSelectedDown();
+
+    private int FindVisibleSiblingIndex(IList<TreeItemNode> siblings, TreeItemNode item, int direction)
     {
-        if (SelectedTreeItem is null)
-        {
-            return false;
-        }
-
-        var siblings = GetSiblings(SelectedTreeItem);
-        var index = siblings.IndexOf(SelectedTreeItem);
-        return index >= 0 && index < siblings.Count - 1;
-    }
-
-    private bool CanMoveSelectedToFirstChild() =>
-        SelectedTreeItem is { } item && GetSiblings(item).IndexOf(item) > 0;
-
-    private bool CanMoveSelectedToLastChild()
-    {
-        if (SelectedTreeItem is not { } item)
-        {
-            return false;
-        }
-
-        var siblings = GetSiblings(item);
         var index = siblings.IndexOf(item);
-        return index >= 0 && index < siblings.Count - 1;
+        if (index < 0)
+        {
+            return -1;
+        }
+
+        for (index += direction; index >= 0 && index < siblings.Count; index += direction)
+        {
+            if (!ReferenceEquals(siblings, RootItems) || !IsRequiredManager(siblings[index].Kind))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     private void MoveSelectedToSiblingEdge(bool first)
@@ -865,10 +965,19 @@ public partial class MainWindowViewModel : ObservableObject
 
         var siblings = GetSiblings(item);
         var currentIndex = siblings.IndexOf(item);
-        var destinationIndex = first ? 0 : siblings.Count - 1;
-        if (currentIndex < 0 || currentIndex == destinationIndex)
+        var direction = first ? -1 : 1;
+        var destinationIndex = FindVisibleSiblingIndex(siblings, item, direction);
+        if (currentIndex < 0 || destinationIndex < 0)
         {
             return;
+        }
+
+        for (var index = destinationIndex + direction; index >= 0 && index < siblings.Count; index += direction)
+        {
+            if (!ReferenceEquals(siblings, RootItems) || !IsRequiredManager(siblings[index].Kind))
+            {
+                destinationIndex = index;
+            }
         }
 
         siblings.RemoveAt(currentIndex);
@@ -947,8 +1056,8 @@ public partial class MainWindowViewModel : ObservableObject
         }
 
         var siblings = GetSiblings(item);
-        var index = siblings.IndexOf(item);
-        return index > 0 && siblings[index - 1].CanAcceptChildren;
+        var index = FindVisibleSiblingIndex(siblings, item, -1);
+        return index >= 0 && siblings[index].CanAcceptChildren;
     }
 
     private void MoveSelectedSibling(int offset)
@@ -961,8 +1070,8 @@ public partial class MainWindowViewModel : ObservableObject
 
         var siblings = GetSiblings(item);
         var index = siblings.IndexOf(item);
-        var destinationIndex = index + offset;
-        if (index < 0 || destinationIndex < 0 || destinationIndex >= siblings.Count)
+        var destinationIndex = FindVisibleSiblingIndex(siblings, item, offset);
+        if (index < 0 || destinationIndex < 0)
         {
             return;
         }
@@ -1017,13 +1126,13 @@ public partial class MainWindowViewModel : ObservableObject
         }
 
         var siblings = GetSiblings(item);
-        var index = siblings.IndexOf(item);
-        if (index <= 0)
+        var index = FindVisibleSiblingIndex(siblings, item, -1);
+        if (index < 0)
         {
             return;
         }
 
-        var newParent = siblings[index - 1];
+        var newParent = siblings[index];
         if (!newParent.CanAcceptChildren)
         {
             return;
@@ -1062,7 +1171,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        if (!IsInTree(item) || !_confirmationService.Confirm(
+        if (IsRequiredManager(item.Kind) || !IsInTree(item) || !_confirmationService.Confirm(
                 $"Delete '{item.Name}' and all of its descendants? This cannot be undone.",
                 "Confirm deletion"))
         {
@@ -1072,6 +1181,7 @@ public partial class MainWindowViewModel : ObservableObject
         var selectedItemIsBeingDeleted = SelectedTreeItem is { } selected &&
                                          (ReferenceEquals(selected, item) || IsAncestorOf(item, selected));
         UnsubscribeDocumentDataChanges(item);
+        DetachDocumentItem(item);
         if (item.Parent is not null)
         {
             item.Parent.Children.Remove(item);
@@ -1095,6 +1205,13 @@ public partial class MainWindowViewModel : ObservableObject
     {
         var sourceNode = data.Node;
         if (sourceNode is null && data.Option is null)
+        {
+            return false;
+        }
+
+        if ((sourceNode is not null && IsRequiredManager(sourceNode.Kind)) ||
+            (data.Option is not null && IsRequiredManager(data.Option.Kind)) ||
+            (target is not null && IsRequiredManager(target.Kind)))
         {
             return false;
         }
@@ -1246,6 +1363,11 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void SubscribeDocumentDataChanges(TreeItemNode item)
     {
+        if (item is IDocumentItemDetached detached)
+        {
+            detached.OnDocumentItemReattached();
+        }
+
         if (item is IDocumentDataChangeNotifier notifier && _documentDataNotifiers.Add(notifier))
         {
             notifier.DocumentDataChanged += OnDocumentDataChanged;
@@ -1271,6 +1393,19 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private void OnDocumentDataChanged(object? sender, EventArgs eventArgs) => IsDirty = true;
+
+    private static void DetachDocumentItem(TreeItemNode item)
+    {
+        foreach (var child in item.Children)
+        {
+            DetachDocumentItem(child);
+        }
+
+        if (item is IDocumentItemDetached detached)
+        {
+            detached.OnDocumentItemDetached();
+        }
+    }
 
     public void SetDropStatus(string status) => DropStatus = status;
 

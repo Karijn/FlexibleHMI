@@ -6,7 +6,7 @@ namespace PropertyManager;
 
 public sealed class StructTypeRegistry : IStructTypeRegistry
 {
-    private static readonly HashSet<string> PrimitiveTypes = ["Integer", "Double", "Boolean"];
+    private static readonly HashSet<string> PrimitiveTypes = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color"];
     private readonly IVariableHandler _variableHandler;
     private readonly object _syncRoot = new();
     private Dictionary<string, StructTypeDefinition> _definitions = new(StringComparer.Ordinal);
@@ -371,6 +371,10 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
             "Integer" => 0,
             "Double" => 0d,
             "Boolean" => false,
+            "String" => string.Empty,
+            "DateTime" => DateTime.UnixEpoch,
+            "TimeSpan" => TimeSpan.Zero,
+            "Color" => System.Drawing.Color.FromArgb(unchecked((int)0xFF000000)),
             _ => CreateDefaultValue(typeName, definitions, currentPath)
         };
     }
@@ -473,6 +477,10 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         {
             "Integer" when value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var integer) => integer,
             "Double" when value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out var number) && double.IsFinite(number) => number,
+            "String" when value.ValueKind == JsonValueKind.String => value.GetString() ?? string.Empty,
+            "DateTime" when value.ValueKind == JsonValueKind.String && DateTime.TryParse(value.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTime) => dateTime,
+            "TimeSpan" when value.ValueKind == JsonValueKind.String && TimeSpan.TryParse(value.GetString(), CultureInfo.InvariantCulture, out var timeSpan) => timeSpan,
+            "Color" when value.ValueKind == JsonValueKind.String && ColorValue.TryParse(value.GetString(), out var color) => color,
             _ when definitions.ContainsKey(typeName) => ParseValue(typeName, value, definitions),
             _ => throw new InvalidDataException($"Value is invalid for type '{typeName}'.")
         };
@@ -527,7 +535,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         {
             if (oldValue.Fields.TryGetValue(field.Name, out var oldFieldValue))
             {
-                if (field.TypeName is "Integer" or "Double" or "Boolean")
+                if (PrimitiveTypes.Contains(field.TypeName))
                 {
                     if (oldFieldValue is not null && MatchesPrimitiveType(field.TypeName, oldFieldValue))
                     {
@@ -701,6 +709,10 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
             "Integer" when value is int integer => integer,
             "Double" when value is double number && double.IsFinite(number) => number,
             "Boolean" when value is bool boolean => boolean,
+            "String" when value is string text => text,
+            "DateTime" when value is DateTime dateTime => dateTime.ToString("O", CultureInfo.InvariantCulture),
+            "TimeSpan" when value is TimeSpan timeSpan => timeSpan.ToString("c", CultureInfo.InvariantCulture),
+            "Color" when value is System.Drawing.Color color => ColorValue.Format(color),
             _ when definitions.ContainsKey(typeName) && value is StructValue structure && structure.TypeName == typeName =>
                 ToSerializableFields(structure, definitions),
             _ => throw new InvalidDataException($"Value is invalid for type '{typeName}'.")
@@ -721,7 +733,7 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         string typeName,
         IReadOnlyDictionary<string, StructTypeDefinition> definitions)
     {
-        if (typeName is "Integer" or "Double" or "Boolean")
+        if (PrimitiveTypes.Contains(typeName))
         {
             return value is not null && MatchesPrimitiveType(typeName, value)
                 ? value
@@ -807,6 +819,10 @@ public sealed class StructTypeRegistry : IStructTypeRegistry
         "Integer" => value is int,
         "Double" => value is double,
         "Boolean" => value is bool,
+        "String" => value is string,
+        "DateTime" => value is DateTime,
+        "TimeSpan" => value is TimeSpan,
+        "Color" => value is System.Drawing.Color,
         _ => false
     };
 

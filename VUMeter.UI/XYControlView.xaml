@@ -1,0 +1,124 @@
+<UserControl x:Class="VUMeter.UI.XYControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:VUMeter.UI" MinWidth="320">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanVisibility" />
+        <local:LegendColorConverter x:Key="LegendColor" />
+        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel Margin="12">
+        <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Name}" />
+        <TextBlock Margin="0,4,0,4" Text="X/Y axis limits" />
+        <WrapPanel Margin="0,0,0,4">
+            <TextBlock VerticalAlignment="Center" Text="X min" />
+            <TextBox Width="65" Margin="4,0,8,0" Text="{Binding MinimumX, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+            <TextBlock VerticalAlignment="Center" Text="X max" />
+            <TextBox Width="65" Margin="4,0,8,0" Text="{Binding MaximumX, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+            <TextBlock VerticalAlignment="Center" Text="Y min" />
+            <TextBox Width="65" Margin="4,0,8,0" Text="{Binding MinimumY, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+            <TextBlock VerticalAlignment="Center" Text="Y max" />
+            <TextBox Width="65" Margin="4,0,8,0" Text="{Binding MaximumY, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        </WrapPanel>
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Text="{Binding BoundsStatus}" />
+        <Grid Width="450" Height="300" HorizontalAlignment="Left" Margin="0,4,0,8">
+            <local:XYPlot Model="{Binding}" />
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5" Padding="4" Background="#EAF5F5F5" CornerRadius="3"
+                    Visibility="{Binding EffectiveShowLegend, Converter={StaticResource BooleanVisibility}}">
+                <ScrollViewer MaxWidth="200" MaxHeight="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Points}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel>
+                                    <Border Width="12" Height="12" Margin="0,0,6,0" Background="{Binding EffectiveColor, Converter={StaticResource LegendColor}}" BorderBrush="Gray" BorderThickness="1" />
+                                    <TextBlock TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"><Run Text="X: "/><Run Text="{Binding XProperty}"/><Run Text="  Y: "/><Run Text="{Binding YProperty}"/></TextBlock>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        <WrapPanel Margin="0,0,0,8">
+            <CheckBox Content="Show legend (manual)" IsChecked="{Binding ShowLegend}" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock Text="Legend property" VerticalAlignment="Center" Margin="0,0,4,0" />
+            <ComboBox Width="150" IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}" Text="{Binding ShowLegendProperty, UpdateSourceTrigger=LostFocus}"
+                      ToolTip="Leave blank to use the manual setting. An unavailable or non-Boolean property hides the legend." />
+        </WrapPanel>
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Text="{Binding LegendStatus}" />
+        <WrapPanel Margin="0,0,0,8">
+            <Button Content="Add point" Command="{Binding AddPointCommand}" Padding="8,4" Margin="0,0,8,0" />
+            <Button Content="Clear trails" Command="{Binding ClearTrailsCommand}" Padding="8,4" />
+        </WrapPanel>
+        <TextBlock Margin="0,0,0,8" TextWrapping="Wrap" Text="Each point uses numeric X and Y properties. Optional appearance properties override the manual settings. Size is 1-100 pixels; trail length is 1-10000 positions. Invalid color or size hides the point; invalid trail settings clear the trail." />
+        <ItemsControl ItemsSource="{Binding Points}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8">
+                        <StackPanel>
+                            <WrapPanel>
+                                <StackPanel Width="150" Margin="0,0,8,4">
+                                    <TextBlock Text="X property" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding XProperty, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Width="150" Margin="0,0,8,4">
+                                    <TextBlock Text="Y property" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding YProperty, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Width="100" Margin="0,0,8,4">
+                                    <TextBlock Text="Color" />
+                                    <ComboBox ItemsSource="{Binding DataContext.PointColors, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              SelectedItem="{Binding Color}" />
+                                </StackPanel>
+                                <StackPanel Width="70" Margin="0,0,8,4">
+                                    <TextBlock Text="Size (px)" />
+                                    <TextBox Text="{Binding Size, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+                                </StackPanel>
+                                <StackPanel Width="80" Margin="0,0,8,4">
+                                    <TextBlock Text="Trail length" />
+                                    <TextBox Text="{Binding TrailLength, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+                                </StackPanel>
+                                <CheckBox Content="Trail" IsChecked="{Binding ShowTrail}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <Button Content="Remove" Padding="8,4" VerticalAlignment="Center"
+                                        Command="{Binding DataContext.RemovePointCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                            </WrapPanel>
+                            <WrapPanel>
+                                <StackPanel Width="150" Margin="0,0,8,4">
+                                    <TextBlock Text="Color property" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.ColorPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding ColorProperty, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Width="150" Margin="0,0,8,4">
+                                    <TextBlock Text="Size property" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding SizeProperty, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Width="150" Margin="0,0,8,4">
+                                    <TextBlock Text="Trail enabled property" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.BooleanPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding TrailProperty, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                                <StackPanel Width="150" Margin="0,0,8,4">
+                                    <TextBlock Text="Trail length property" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding TrailLengthProperty, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                            </WrapPanel>
+                            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+                            <TextBlock Foreground="Firebrick" Text="{Binding AppearanceStatus}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

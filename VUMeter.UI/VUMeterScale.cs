@@ -74,16 +74,8 @@ public partial class VUMeterView
         Canvas.SetLeft(MeterCanvas.Children[^1], 211);
         Canvas.SetTop(MeterCanvas.Children[^1], 218);
 
-        MeterCanvas.Children.Add(Needle);
-        MeterCanvas.Children.Add(PeakLed);
+        MeterCanvas.Children.Add(Needles);
         MeterCanvas.Children.Add(PivotCover);
-        MeterCanvas.Children.Add(new TextBlock
-        {
-            Text = "PEAK",
-            FontSize = 9
-        });
-        Canvas.SetLeft(MeterCanvas.Children[^1], 422);
-        Canvas.SetTop(MeterCanvas.Children[^1], 222);
     }
 
     private void DrawArc()

@@ -3,44 +3,91 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              MinWidth="320" MinHeight="240"
              Loaded="VUMeterView_Loaded">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanVisibility" />
+    </UserControl.Resources>
     <DockPanel Margin="12">
-        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8" VerticalAlignment="Center">
-            <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Angle property" />
-            <ComboBox Width="220" ItemsSource="{Binding NumericPropertyNames}"
-                      SelectedItem="{Binding SelectedPropertyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        </WrapPanel>
-        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0" Text="{Binding Status}" />
+        <StackPanel DockPanel.Dock="Top">
+            <WrapPanel Margin="0,0,0,8">
+                <Button Content="Add input" Command="{Binding AddInputCommand}" Padding="8,4" Margin="0,0,8,0" />
+                <CheckBox Content="Show legend (manual)" IsChecked="{Binding ShowLegend}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBlock Text="Legend property" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <ComboBox Width="150" IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}" Text="{Binding ShowLegendProperty, UpdateSourceTrigger=LostFocus}"
+                          ToolTip="Leave blank to use the manual setting. An unavailable or non-Boolean property hides the legend." />
+            </WrapPanel>
+            <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Text="{Binding LegendStatus}" />
+            <ItemsControl ItemsSource="{Binding Inputs}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,6">
+                            <WrapPanel>
+                                <TextBlock Text="Angle property" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <ComboBox Width="180" IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                          Text="{Binding PropertyName, UpdateSourceTrigger=LostFocus}" />
+                                <ComboBox Width="90" Margin="8,0" ItemsSource="{Binding DataContext.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedItem="{Binding Color}" />
+                                <Button Content="Remove" Padding="8,4" Command="{Binding DataContext.RemoveInputCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                            </WrapPanel>
+                            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
         <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Border Width="500" Height="300" Padding="10" CornerRadius="8" Background="#4A3728">
-                <Canvas x:Name="MeterCanvas" Background="#F5E6C8">
-                    <Line x:Name="Needle" X1="250" Y1="280" X2="250" Y2="90"
-                          Stroke="#1A1A1A" StrokeThickness="3" StrokeStartLineCap="Round">
-                        <Line.RenderTransform>
-                            <RotateTransform CenterX="250" CenterY="280" Angle="{Binding NeedleAngle}" />
-                        </Line.RenderTransform>
-                    </Line>
-                    <Ellipse x:Name="PivotCover" Width="16" Height="16" Fill="#1A1A1A"
-                             Canvas.Left="242" Canvas.Top="272" />
-                    <Ellipse x:Name="PeakLed" Width="14" Height="14" Canvas.Left="430" Canvas.Top="205"
-                             Stroke="DarkRed" StrokeThickness="1">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="DarkRed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsPeakActive}" Value="True">
-                                        <Setter Property="Fill" Value="Red" />
-                                        <Setter Property="Effect">
-                                            <Setter.Value>
-                                                <DropShadowEffect Color="Red" BlurRadius="10" ShadowDepth="0" />
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
-                    <TextBlock Text="PEAK" FontSize="9" Canvas.Left="422" Canvas.Top="222" />
-                </Canvas>
+                <Grid>
+                    <Canvas x:Name="MeterCanvas" Background="#F5E6C8">
+                        <ItemsControl x:Name="Needles" ItemsSource="{Binding Inputs}" Width="480" Height="280">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Line X1="250" Y1="280" X2="250" Y2="90" Stroke="{Binding Color}" StrokeThickness="3" StrokeStartLineCap="Round"
+                                          Visibility="{Binding IsAvailable, Converter={StaticResource BooleanVisibility}}">
+                                        <Line.RenderTransform><RotateTransform CenterX="250" CenterY="280" Angle="{Binding Angle}" /></Line.RenderTransform>
+                                    </Line>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Ellipse x:Name="PivotCover" Width="16" Height="16" Fill="#1A1A1A"
+                                 Canvas.Left="242" Canvas.Top="272" />
+                    </Canvas>
+                    <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5" Padding="4"
+                            Background="#EAF5E6C8" CornerRadius="3">
+                        <StackPanel>
+                            <TextBlock Text="PEAK" FontSize="9" FontWeight="SemiBold" />
+                            <ScrollViewer MaxHeight="85" MaxWidth="165" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding Inputs}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,1" ToolTip="{Binding Status}">
+                                                <Ellipse Width="12" Height="12" Stroke="DarkRed" StrokeThickness="1" Margin="0,0,5,0">
+                                                    <Ellipse.Style>
+                                                        <Style TargetType="Ellipse">
+                                                            <Setter Property="Fill" Value="DarkRed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsPeakActive}" Value="True">
+                                                                    <Setter Property="Fill" Value="Red" />
+                                                                    <Setter Property="Effect">
+                                                                        <Setter.Value><DropShadowEffect Color="Red" BlurRadius="10" ShadowDepth="0" /></Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Ellipse.Style>
+                                                </Ellipse>
+                                                <Border Width="10" Height="10" Margin="0,0,5,0" Background="{Binding Color}" BorderBrush="Gray" BorderThickness="1" />
+                                                <TextBlock Text="{Binding PropertyName}" TextTrimming="CharacterEllipsis"
+                                                           Visibility="{Binding DataContext.EffectiveShowLegend, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanVisibility}}" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </Border>
         </Viewbox>
     </DockPanel>

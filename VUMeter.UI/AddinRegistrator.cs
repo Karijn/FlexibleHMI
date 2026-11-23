@@ -19,6 +19,10 @@ public class AddinRegistrator : IAddInRegistrator
     {
         services.AddKeyedTransient<TreeItemOption, VUMeterCreator>(VUMeterCreator.jsonkey);
         services.AddKeyedTransient<TreeItemNode, VUMeterViewModel>(VUMeterCreator.jsonkey);
+        services.AddKeyedTransient<TreeItemOption, XYControlCreator>(XYControlCreator.KindName);
+        services.AddKeyedTransient<TreeItemNode, XYControlViewModel>(XYControlCreator.KindName);
+        services.AddKeyedTransient<TreeItemOption, OscilloscopeCreator>(OscilloscopeCreator.KindName);
+        services.AddKeyedTransient<TreeItemNode, OscilloscopeViewModel>(OscilloscopeCreator.KindName);
     }
 
     /// <summary>
@@ -29,5 +33,7 @@ public class AddinRegistrator : IAddInRegistrator
     public void InitializeAddIn(ServiceProvider serviceProvider, IDataTemplateManager dataTemplateManager)
     {
         dataTemplateManager.RegisterDataTemplate<VUMeterViewModel, VUMeterView>();
+        dataTemplateManager.RegisterDataTemplate<XYControlViewModel, XYControlView>();
+        dataTemplateManager.RegisterDataTemplate<OscilloscopeViewModel, OscilloscopeView>();
     }
 }

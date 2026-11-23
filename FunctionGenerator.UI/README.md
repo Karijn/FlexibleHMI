@@ -1,0 +1,7 @@
+# Function generator property control
+
+Select an existing Boolean property in **Start/stop Boolean property** to control all waveform outputs. `true` starts the outputs and `false` stops them; newly added outputs start when the property is true. Changes made by other controls or on background threads are reflected automatically. If the property is deleted or is not Boolean, outputs stop and an error is displayed. The binding is saved with the document and reapplied after the document is attached. Leave the field blank for manual control.
+
+Each waveform output also has an optional **Running Boolean property**. Its `true` and `false` values start and stop that output independently; a missing or non-Boolean property stops that output and reports an error. When both global and per-output properties are configured, an automatic start requires both to be true. If the global property is blank, the per-output property controls its output directly. Bindings are saved with the document and restored when it is attached.
+
+Manual start and stop buttons remain available when a property is bound. They act immediately; a subsequent change to a controlling Boolean property reapplies its value. Waveform output settings must be valid for an output to start, and errors appear on that output. An output cannot write to any configured start/stop property. Frequency, amplitude, offset, and update interval can also use numeric properties.

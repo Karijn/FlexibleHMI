@@ -17,6 +17,8 @@
         <Geometry x:Key="OpenIcon">M2,4 H8 L10,6 H18 V18 H2 Z</Geometry>
         <Geometry x:Key="SaveIcon">M3,2 H17 L19,4 V18 H3 Z M6,2 V7 H15 V2</Geometry>
         <Geometry x:Key="AddIcon">M9,3 H11 V9 H17 V11 H11 V17 H9 V11 H3 V9 H9 Z</Geometry>
+        <Geometry x:Key="StartIcon">M5,3 L17,10 L5,17 Z</Geometry>
+        <Geometry x:Key="StopIcon">M4,4 H16 V16 H4 Z</Geometry>
         <Geometry x:Key="BeforeIcon">M4,3 H6 V17 H4 Z M8,9 H17 V11 H8 L11,14 L10,15 L5,10 L10,5 L11,6 Z</Geometry>
         <Geometry x:Key="AfterIcon">M15,3 H17 V17 H15 Z M12,5 L17,10 L12,15 L11,14 L14,11 H5 V9 H14 L11,6 Z</Geometry>
         <Geometry x:Key="DeleteIcon">M3,6 H5 L6,18 H14 L15,6 H17 L16,20 H4 Z M2,3 H18 V5 H2 Z M7,1 H13 L14,3 H6 Z</Geometry>
@@ -34,6 +36,63 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BoolToColorBrushConverter x:Key="BoolToColorBrushConverter" />
 
+        <Style x:Key="MainDocumentItemStyle" TargetType="ContentPresenter">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Kind}" Value="propertymanager">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="calculation">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="functiongenerator">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="communicationManager">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DocumentTreeItemStyle" TargetType="TreeViewItem">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Kind}" Value="propertymanager">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="calculation">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="functiongenerator">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="communicationManager">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ToolsItemStyle" TargetType="ContentPresenter">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Kind}" Value="propertymanager">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="calculation">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Kind}" Value="functiongenerator">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CommunicationItemStyle" TargetType="ContentPresenter">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Kind}" Value="communicationManager">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
         <Style x:Key="MenuIconStyle" TargetType="Path">
             <Setter Property="Width" Value="16" />
@@ -320,6 +379,21 @@
                 </StackPanel>
             </Button>
             <Separator />
+            <Button ToolTip="Start all function generators"
+                    Command="{Binding StartAllFunctionGeneratorsCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="16" Height="16" Margin="0,0,4,0" Fill="{DynamicResource ForegroundBrush}" Data="{StaticResource StartIcon}" />
+                    <TextBlock Text="Start generators" />
+                </StackPanel>
+            </Button>
+            <Button ToolTip="Stop all function generators"
+                    Command="{Binding StopAllFunctionGeneratorsCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="16" Height="16" Margin="0,0,4,0" Fill="{DynamicResource ForegroundBrush}" Data="{StaticResource StopIcon}" />
+                    <TextBlock Text="Stop generators" />
+                </StackPanel>
+            </Button>
+            <Separator />
             <Button ToolTip="Add selected item as child (Ctrl+Enter)" 
                     Command="{Binding AddItemCommand}">
                 <StackPanel Orientation="Horizontal">
@@ -551,6 +625,7 @@
                         <TreeView x:Name="ItemTree"
                                   Grid.Row="0"
                                   ItemsSource="{Binding RootItems}"
+                                  ItemContainerStyle="{StaticResource DocumentTreeItemStyle}"
                                   AllowDrop="True"
                                   SelectedItemChanged="TreeView_SelectedItemChanged"
                                   PreviewMouseLeftButtonDown="DragSource_PreviewMouseLeftButtonDown"
@@ -616,17 +691,29 @@
                           DragDelta="LeftPanelSplitter_DragDelta"
                           DragCompleted="LeftPanelSplitter_DragCompleted"                          />
 
-            <Grid Grid.Column="2">
-                <ItemsControl ItemsSource="{Binding RootItems}" >
-                    <ItemsControl.Template>
-                        <ControlTemplate TargetType="ItemsControl">
-                            <ScrollViewer >
-                                <ItemsPresenter/>
-                            </ScrollViewer>
-                        </ControlTemplate>
-                    </ItemsControl.Template>
-                </ItemsControl>
-            </Grid>
+            <TabControl Grid.Column="2">
+                <TabItem Header="Main document">
+                    <ItemsControl ItemsSource="{Binding RootItems}" ItemContainerStyle="{StaticResource MainDocumentItemStyle}">
+                        <ItemsControl.Template>
+                            <ControlTemplate TargetType="ItemsControl">
+                                <ScrollViewer>
+                                    <ItemsPresenter />
+                                </ScrollViewer>
+                            </ControlTemplate>
+                        </ItemsControl.Template>
+                    </ItemsControl>
+                </TabItem>
+                <TabItem Header="Properties / Calculator / Function Generator">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RootItems}" ItemContainerStyle="{StaticResource ToolsItemStyle}" />
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Communication Manager">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RootItems}" ItemContainerStyle="{StaticResource CommunicationItemStyle}" />
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
             <!-- =========================================== -->
 
             <GridSplitter Grid.Column="3"

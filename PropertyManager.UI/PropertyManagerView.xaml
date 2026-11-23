@@ -35,7 +35,7 @@
                         <GridView>
                             <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150" />
                             <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="90" />
-                            <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="150" />
+                            <GridViewColumn Header="Value" DisplayMemberBinding="{Binding DisplayValue}" Width="150" />
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -103,9 +103,9 @@
                     </ComboBox.Style>
                 </ComboBox>
 
-                <TextBlock Margin="0,0,0,4" Text="Value (JSON)" />
+                <TextBlock Margin="0,0,0,4" Text="Value" />
                 <TextBlock Margin="0,0,0,6" TextWrapping="Wrap"
-                           Text="Enter struct fields as a JSON object or array values as a JSON array. Nested structs and arrays are supported; use element types such as Integer, Device, or Integer[]." />
+                           Text="Colors use names or hex (#RRGGBB or #AARRGGBB). Enter structs as JSON objects and arrays as JSON arrays; color fields and elements use JSON strings." />
                 <TextBox Padding="6" MinHeight="90" AcceptsReturn="True" TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
                          Text="{Binding ValueInput, UpdateSourceTrigger=PropertyChanged}">

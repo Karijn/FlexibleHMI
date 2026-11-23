@@ -6,12 +6,23 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <DockPanel Margin="12">
-        <Button DockPanel.Dock="Top"
-                HorizontalAlignment="Left"
-                Margin="0,0,0,8"
-                Padding="10,5"
-                Content="Add output"
-                Command="{Binding AddOutputCommand}" />
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <WrapPanel VerticalAlignment="Center">
+                <Button Margin="0,0,8,0" Padding="10,5" Content="Add waveform output"
+                        Command="{Binding AddOutputCommand}" />
+                <Button Margin="0,0,8,0" Padding="10,5" Content="Start all outputs"
+                        Command="{Binding StartAllCommand}" />
+                <Button Padding="10,5" Content="Stop all outputs" Command="{Binding StopAllCommand}" />
+            </WrapPanel>
+            <StackPanel Width="380" Margin="0,8,0,0">
+                <TextBlock Margin="0,0,0,3" Text="Start/stop Boolean property (true = start, false = stop)" />
+                <ComboBox IsEditable="True" ItemsSource="{Binding BooleanProperties}"
+                          Text="{Binding StartStopPropertyName, UpdateSourceTrigger=LostFocus}"
+                          ToolTip="Leave blank for manual control. A missing or non-Boolean property stops the outputs." />
+                <TextBlock Margin="0,3,0,0" Foreground="Firebrick" TextWrapping="Wrap"
+                           Text="{Binding ControlStatus}" />
+            </StackPanel>
+        </StackPanel>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Outputs}">
                 <ItemsControl.ItemTemplate>
@@ -28,7 +39,7 @@
                                 </DockPanel>
                                 <WrapPanel>
                                     <StackPanel Width="170" Margin="0,0,12,8">
-                                        <TextBlock Margin="0,0,0,3" Text="Property name" />
+                                        <TextBlock Margin="0,0,0,3" Text="Output property" />
                                         <TextBox Text="{Binding PropertyName, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                     <StackPanel Width="150" Margin="0,0,12,8">
@@ -38,20 +49,43 @@
                                     <StackPanel Width="110" Margin="0,0,12,8">
                                         <TextBlock Margin="0,0,0,3" Text="Frequency (Hz)" />
                                         <TextBox Text="{Binding Frequency, UpdateSourceTrigger=LostFocus}" />
+                                        <ComboBox Margin="0,3,0,0" IsEditable="True"
+                                                  ItemsSource="{Binding DataContext.AvailableProperties, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  Text="{Binding FrequencyPropertyName, UpdateSourceTrigger=PropertyChanged}"
+                                                  ToolTip="Optional numeric property to bind as frequency" />
                                     </StackPanel>
                                     <StackPanel Width="100" Margin="0,0,12,8">
                                         <TextBlock Margin="0,0,0,3" Text="Amplitude" />
                                         <TextBox Text="{Binding Amplitude, UpdateSourceTrigger=LostFocus}" />
+                                        <ComboBox Margin="0,3,0,0" IsEditable="True"
+                                                  ItemsSource="{Binding DataContext.AvailableProperties, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  Text="{Binding AmplitudePropertyName, UpdateSourceTrigger=PropertyChanged}"
+                                                  ToolTip="Optional numeric property to bind as amplitude" />
                                     </StackPanel>
                                     <StackPanel Width="100" Margin="0,0,12,8">
                                         <TextBlock Margin="0,0,0,3" Text="Offset" />
                                         <TextBox Text="{Binding Offset, UpdateSourceTrigger=LostFocus}" />
+                                        <ComboBox Margin="0,3,0,0" IsEditable="True"
+                                                  ItemsSource="{Binding DataContext.AvailableProperties, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  Text="{Binding OffsetPropertyName, UpdateSourceTrigger=PropertyChanged}"
+                                                  ToolTip="Optional numeric property to bind as offset" />
                                     </StackPanel>
-                                    <StackPanel Width="130" Margin="0,0,12,8">
+                                    <StackPanel Width="150" Margin="0,0,12,8">
                                         <TextBlock Margin="0,0,0,3" Text="Update interval (ms)" />
                                         <TextBox Text="{Binding UpdateIntervalMilliseconds, UpdateSourceTrigger=LostFocus}" />
+                                        <ComboBox Margin="0,3,0,0" IsEditable="True"
+                                                  ItemsSource="{Binding DataContext.AvailableProperties, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  Text="{Binding UpdateIntervalPropertyName, UpdateSourceTrigger=PropertyChanged}"
+                                                  ToolTip="Optional numeric property to bind as update interval (1-10000 ms)" />
                                     </StackPanel>
                                 </WrapPanel>
+                                <StackPanel Width="250" HorizontalAlignment="Left" Margin="0,0,0,8">
+                                    <TextBlock Text="Running Boolean property (true = start)" Margin="0,0,0,3" />
+                                    <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.BooleanProperties, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              Text="{Binding RunningPropertyName, UpdateSourceTrigger=LostFocus}"
+                                              ToolTip="Leave blank for manual or global control. A missing or non-Boolean property stops this output." />
+                                    <TextBlock Text="{Binding RunningControlStatus}" Foreground="Firebrick" TextWrapping="Wrap" />
+                                </StackPanel>
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                         <Button MinWidth="70" Margin="0,0,6,0" Padding="8,4" Content="Start" Command="{Binding StartCommand}" />

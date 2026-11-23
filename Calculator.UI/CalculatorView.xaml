@@ -43,8 +43,8 @@
                                             <TextBlock Margin="0,0,0,3" Text="Output property name" />
                                             <TextBox Padding="6" Text="{Binding OutputPropertyName, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
-                                        <StackPanel Width="120" Margin="0,0,12,8">
-                                            <TextBlock Margin="0,0,0,3" Text="Output type" />
+                                            <StackPanel Width="120" Margin="0,0,12,8">
+                                        <TextBlock Margin="0,0,0,3" Text="Output type" />
                                             <ComboBox Padding="6" ItemsSource="{Binding OutputTypes}"
                                                       SelectedItem="{Binding OutputType, Mode=TwoWay}" />
                                         </StackPanel>
@@ -70,7 +70,7 @@
                     <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" FontSize="16" FontWeight="SemiBold"
                                Text="Available properties" />
                     <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap"
-                               Text="Use names directly (MyProperty), brace names with spaces ({Outside Temperature}), struct fields (MyStruct.Settings.Limit), or array elements (Samples[0], Devices[1].Temperature). Paths can end in numeric or boolean values. Operators: + - * / % ^, == != &lt; &lt;= &gt; &gt;=, &amp;&amp; || !. Functions include abs, sqrt, sin, cos, tan, log, round, min, max, pow and clamp." />
+                               Text="Use names directly (MyProperty), brace names with spaces ({Outside Temperature}), struct fields (MyStruct.Settings.Limit), or array elements (Samples[0], Devices[1].Temperature). Operators: + - * / % ^, == != &lt; &lt;= &gt; &gt;=, &amp;&amp; || !. String functions: len, lower, upper, trim, substring, replace, concat, contains, startswith, endswith. DateTime: now, today, datetime, year, month, day, adddays, formatdatetime. TimeSpan: timespan, totaldays, totalhours, totalseconds, addtimespan. JSON: json, jsonobject, jsonarray, jsonparse, jsonget, jsonstring, jsonhas, jsonlength, jsonvalid. Color: color('Red'), colorfromstring, rgb(r,g,b), argb(a,r,g,b), colortostring, colortoarray, colortostruct, colortojson, colorfromarray, colorfromstruct, colorfromjson. Arrays use [A,R,G,B]; objects use A,R,G,B (A optional). Components are integers 0-255. JSON colors are strings such as &quot;#80FF0000&quot;. To store an array or struct result, first create a matching destination property; for colortostruct use Integer fields named A, R, G and B." />
                     <ListBox ItemsSource="{Binding AvailableProperties}" />
                 </DockPanel>
             </Border>

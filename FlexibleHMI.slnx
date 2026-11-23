@@ -18,6 +18,11 @@
     <Project Path="FunctionGenerator.UI/FunctionGenerator.UI.csproj" Id="e891c328-7a55-4e40-9337-a40ff89dd966" />
     <Project Path="FunctionGenerator/FunctionGenerator.csproj" Id="12d27cd0-9544-412d-a89b-73e510f5323b" />
   </Folder>
+  <Folder Name="/Inputs/">
+    <Project Path="Inputs.Interfaces/Inputs.Interfaces.csproj" Id="798a5a68-b613-4164-bb47-a228d02cbbe4" />
+    <Project Path="Inputs.UI/Inputs.UI.csproj" Id="667377d9-bbf4-40bc-a942-337f86185ef0" />
+    <Project Path="Inputs/Inputs.csproj" Id="994d677a-bba9-4309-92ab-4649bfe794a0" />
+  </Folder>
   <Folder Name="/Layout/">
     <Project Path="WpfPropertyGrid/WpfPropertyGrid.csproj" />
   </Folder>

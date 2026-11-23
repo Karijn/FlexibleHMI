@@ -10,10 +10,11 @@ using System.Windows;
 
 namespace PropertyManager.UI;
 
-public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentData
+public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentData, IDocumentItemDetached
 {
     private readonly IVariableHandler _variableHandler;
     private readonly IStructTypeRegistry _structTypeRegistry;
+    private bool _isDetached;
 
     public PropertyManagerViewModel(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry)
     {
@@ -31,13 +32,30 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
 
     public ObservableCollection<NameValue> Properties { get; } = [];
 
-    public ObservableCollection<string> PropertyTypes { get; } = ["Integer", "Double", "Boolean", "Struct", "Array"];
+    public void OnDocumentItemDetached()
+    {
+        _isDetached = true;
+        _variableHandler.VariableChanged -= OnVariableChanged;
+        _structTypeRegistry.Changed -= OnStructTypesChanged;
+    }
+
+    public void OnDocumentItemReattached()
+    {
+        if (_isDetached)
+        {
+            _isDetached = false;
+            _variableHandler.VariableChanged += OnVariableChanged;
+            _structTypeRegistry.Changed += OnStructTypesChanged;
+        }
+    }
+
+    public ObservableCollection<string> PropertyTypes { get; } = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color", "Struct", "Array"];
 
     public ObservableCollection<string> StructTypeNames { get; } = [];
 
-    public ObservableCollection<string> StructFieldTypes { get; } = ["Integer", "Double", "Boolean"];
+    public ObservableCollection<string> StructFieldTypes { get; } = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color"];
 
-    public ObservableCollection<string> ArrayElementTypes { get; } = ["Integer", "Double", "Boolean"];
+    public ObservableCollection<string> ArrayElementTypes { get; } = ["Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color"];
 
     public ObservableCollection<StructFieldViewModel> StructFields { get; } = [];
 
@@ -206,9 +224,10 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         }
         else
         {
-            ValueInput = value.Value is IFormattable formattable
-                ? formattable.ToString(null, CultureInfo.CurrentCulture) ?? string.Empty
-                : value.Value?.ToString() ?? string.Empty;
+            ValueInput = value.Value is System.Drawing.Color color ? ColorValue.Format(color) :
+                value.Value is IFormattable formattable
+                    ? formattable.ToString(null, CultureInfo.CurrentCulture) ?? string.Empty
+                    : value.Value?.ToString() ?? string.Empty;
             SelectedStructType = null;
         }
 
@@ -317,7 +336,7 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
         StructTypeNames.Clear();
         StructFieldTypes.Clear();
         ArrayElementTypes.Clear();
-        foreach (var primitiveType in new[] { "Integer", "Double", "Boolean" })
+        foreach (var primitiveType in new[] { "Integer", "Double", "Boolean", "String", "DateTime", "TimeSpan", "Color" })
         {
             StructFieldTypes.Add(primitiveType);
             ArrayElementTypes.Add(primitiveType);
@@ -377,6 +396,33 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
             case "Boolean":
                 value = BooleanValue;
                 return true;
+            case "String":
+                value = ValueInput;
+                return true;
+            case "DateTime":
+                if (DateTime.TryParse(ValueInput, CultureInfo.CurrentCulture, DateTimeStyles.RoundtripKind, out var dateTime))
+                {
+                    value = dateTime;
+                    return true;
+                }
+                ErrorMessage = "Enter a valid date and time (for example, 2026-11-23T17:49:32).";
+                break;
+            case "TimeSpan":
+                if (TimeSpan.TryParse(ValueInput, CultureInfo.CurrentCulture, out var timeSpan))
+                {
+                    value = timeSpan;
+                    return true;
+                }
+                ErrorMessage = "Enter a valid time span (for example, 01:30:00).";
+                break;
+            case "Color":
+                if (ColorValue.TryParse(ValueInput, out var color))
+                {
+                    value = color;
+                    return true;
+                }
+                ErrorMessage = "Enter a color name or hex value (for example, Red or #80FF0000).";
+                break;
             case "Struct" when !string.IsNullOrWhiteSpace(SelectedStructType):
                 try
                 {
@@ -423,6 +469,22 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
             else if (_variableHandler.TryGet<bool>(name, out var boolean))
             {
                 Properties.Add(new NameValue { Name = name, Type = "Boolean", Value = boolean });
+            }
+            else if (_variableHandler.TryGet<string>(name, out var text))
+            {
+                Properties.Add(new NameValue { Name = name, Type = "String", Value = text });
+            }
+            else if (_variableHandler.TryGet<DateTime>(name, out var dateTime))
+            {
+                Properties.Add(new NameValue { Name = name, Type = "DateTime", Value = dateTime });
+            }
+            else if (_variableHandler.TryGet<TimeSpan>(name, out var timeSpan))
+            {
+                Properties.Add(new NameValue { Name = name, Type = "TimeSpan", Value = timeSpan });
+            }
+            else if (_variableHandler.TryGet<System.Drawing.Color>(name, out var color))
+            {
+                Properties.Add(new NameValue { Name = name, Type = "Color", Value = color });
             }
             else if (_variableHandler.TryGet<StructValue>(name, out var structure) && structure is not null)
             {
@@ -481,6 +543,10 @@ public partial class PropertyManagerViewModel : TreeItemNode, ITreeItemDocumentD
             int => "Integer",
             double => "Double",
             bool => "Boolean",
+            string => "String",
+            DateTime => "DateTime",
+            TimeSpan => "TimeSpan",
+            System.Drawing.Color => "Color",
             StructValue => "Struct",
             ArrayValue => "Array",
             _ => string.Empty

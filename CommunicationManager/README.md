@@ -8,4 +8,4 @@ Messages are UTF-8 lines terminated by `\n` (a preceding `\r` is ignored), in th
 !external-name:arguments
 ```
 
-The external name must match a mapping exactly. The argument after the first colon is parsed using the mapped property's type: invariant-culture integer or finite double, or `True`/`False` for boolean. A message without an argument is accepted but does not update the property. Outgoing values use the same format, with invariant-culture numbers and `True`/`False` booleans. Lines longer than 4096 characters are discarded.
+The external name must match a mapping exactly. The argument after the first colon is parsed using the mapped property's type: invariant-culture numbers, booleans, strings, dates, time spans, colors, or JSON for structs and arrays. Colors accept names such as `Red` or hexadecimal values such as `#80FF0000` (alpha, red, green, blue); outgoing colors use `#AARRGGBB`. A message without an argument is accepted but does not update the property. Lines longer than 4096 characters are discarded.

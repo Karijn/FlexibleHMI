@@ -11,22 +11,40 @@ using System.Windows.Media;
 
 namespace Calculator.UI;
 
-public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
+public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData, IDocumentItemDetached
 {
     private readonly IVariableHandler _variableHandler;
+    private readonly IStructTypeRegistry _structTypeRegistry;
+    private bool _isDetached;
 
-    public CalculatorViewModel(IVariableHandler variableHandler)
+    public CalculatorViewModel(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry)
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
+        _structTypeRegistry = structTypeRegistry ?? throw new ArgumentNullException(nameof(structTypeRegistry));
         Name = "Calculator";
         Description = "Calculate properties from live property values";
         Image = CalculatorCreator.GetIcon(); // TreeItemOption.CreateDiamondImage(Colors.DarkOrange);
         _variableHandler.VariableChanged += OnVariableChanged;
         RefreshAvailableProperties();
-        Calculations.Add(new CalculatorCalculationViewModel(_variableHandler));
+        Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, _structTypeRegistry));
     }
 
     public ObservableCollection<CalculatorCalculationViewModel> Calculations { get; } = [];
+
+    public void OnDocumentItemDetached()
+    {
+        _isDetached = true;
+        _variableHandler.VariableChanged -= OnVariableChanged;
+    }
+
+    public void OnDocumentItemReattached()
+    {
+        if (_isDetached)
+        {
+            _isDetached = false;
+            _variableHandler.VariableChanged += OnVariableChanged;
+        }
+    }
 
     public ObservableCollection<string> AvailableProperties { get; } = [];
 
@@ -52,7 +70,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
         }
         while (Calculations.Any(item => string.Equals(item.OutputPropertyName, name, StringComparison.Ordinal)));
 
-        Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, name));
+        Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, _structTypeRegistry, name));
     }
 
     [RelayCommand]
@@ -66,7 +84,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
 
     public override TreeItemNode Copy()
     {
-        var copy = new CalculatorViewModel(_variableHandler)
+        var copy = new CalculatorViewModel(_variableHandler, _structTypeRegistry)
         {
             Name = Name,
             Description = Description,
@@ -75,7 +93,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
         copy.Calculations.Clear();
         foreach (var calculation in Calculations)
         {
-            copy.Calculations.Add(calculation.Copy(_variableHandler));
+            copy.Calculations.Add(calculation.Copy(_variableHandler, _structTypeRegistry));
         }
 
         return copy;
@@ -110,13 +128,13 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
         Calculations.Clear();
         foreach (var setting in settings)
         {
-            if (setting.OutputType is not ("Integer" or "Double" or "Boolean") ||
+            if (setting.OutputType is not ("Integer" or "Double" or "Boolean" or "String" or "DateTime" or "TimeSpan" or "Color" or "Struct" or "Array") ||
                 !double.TryParse("0", NumberStyles.Float, CultureInfo.InvariantCulture, out _))
             {
                 throw new InvalidDataException("The document contains invalid calculator settings.");
             }
 
-            Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, setting.OutputPropertyName)
+            Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, _structTypeRegistry, setting.OutputPropertyName)
             {
                 Expression = setting.Expression,
                 OutputType = setting.OutputType,
@@ -126,7 +144,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
 
         if (Calculations.Count == 0)
         {
-            Calculations.Add(new CalculatorCalculationViewModel(_variableHandler));
+            Calculations.Add(new CalculatorCalculationViewModel(_variableHandler, _structTypeRegistry));
         }
     }
 
@@ -144,6 +162,11 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
 
     private void ApplyVariableChange()
     {
+        if (_isDetached)
+        {
+            return;
+        }
+
         RefreshAvailableProperties();
         foreach (var calculation in Calculations)
         {
@@ -161,10 +184,12 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
         {
             if (_variableHandler.TryGet<StructValue>(name, out var structure) && structure is not null)
             {
+                names.Add(FormatExpressionReference(name));
                 names.AddRange(GetScalarFieldReferences(structure, name));
             }
             else if (_variableHandler.TryGet<ArrayValue>(name, out var array) && array is not null)
             {
+                names.Add(FormatExpressionReference(name));
                 names.AddRange(GetScalarArrayReferences(array, name));
             }
             else
@@ -204,7 +229,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
                     yield return reference;
                 }
             }
-            else if (value is int or double or bool)
+            else if (value is int or double or bool or string or DateTime or TimeSpan or System.Drawing.Color)
             {
                 yield return FormatExpressionReference(fieldPath);
             }
@@ -231,7 +256,7 @@ public partial class CalculatorViewModel : TreeItemNode, ITreeItemDocumentData
                     yield return reference;
                 }
             }
-            else if (item is int or double or bool)
+            else if (item is int or double or bool or string or DateTime or TimeSpan or System.Drawing.Color)
             {
                 yield return FormatExpressionReference(itemPath);
             }

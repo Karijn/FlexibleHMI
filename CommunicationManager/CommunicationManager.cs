@@ -244,6 +244,32 @@ public sealed class CommunicationManager : IDisposable
                 return;
             }
 
+            if (_variableHandler.TryGet<string>(propertyName, out _))
+            {
+                _variableHandler.Set(propertyName, arguments);
+                return;
+            }
+
+            if (_variableHandler.TryGet<DateTime>(propertyName, out _) &&
+                DateTime.TryParse(arguments, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTime))
+            {
+                _variableHandler.Set(propertyName, dateTime);
+                return;
+            }
+
+            if (_variableHandler.TryGet<TimeSpan>(propertyName, out _) &&
+                TimeSpan.TryParse(arguments, CultureInfo.InvariantCulture, out var timeSpan))
+            {
+                _variableHandler.Set(propertyName, timeSpan);
+                return;
+            }
+
+            if (_variableHandler.TryGet<System.Drawing.Color>(propertyName, out _) && ColorValue.TryParse(arguments, out var color))
+            {
+                _variableHandler.Set(propertyName, color);
+                return;
+            }
+
             if (_variableHandler.TryGet<StructValue>(propertyName, out var structure) && structure is not null)
             {
                 try
@@ -374,6 +400,22 @@ public sealed class CommunicationManager : IDisposable
         {
             SendValue(route, boolean);
         }
+        else if (_variableHandler.TryGet<string>(route.PropertyName, out var text))
+        {
+            SendValue(route, text);
+        }
+        else if (_variableHandler.TryGet<DateTime>(route.PropertyName, out var dateTime))
+        {
+            SendValue(route, dateTime);
+        }
+        else if (_variableHandler.TryGet<TimeSpan>(route.PropertyName, out var timeSpan))
+        {
+            SendValue(route, timeSpan);
+        }
+        else if (_variableHandler.TryGet<System.Drawing.Color>(route.PropertyName, out var color))
+        {
+            SendValue(route, color);
+        }
         else if (_variableHandler.TryGet<StructValue>(route.PropertyName, out var structure) && structure is not null)
         {
             SendValue(route, structure);
@@ -398,6 +440,10 @@ public sealed class CommunicationManager : IDisposable
                 int integer => integer.ToString(CultureInfo.InvariantCulture),
                 double number when double.IsFinite(number) => number.ToString("R", CultureInfo.InvariantCulture),
                 bool boolean => boolean ? "True" : "False",
+                string text => text,
+                DateTime dateTime => dateTime.ToString("O", CultureInfo.InvariantCulture),
+                TimeSpan timeSpan => timeSpan.ToString("c", CultureInfo.InvariantCulture),
+                System.Drawing.Color color => ColorValue.Format(color),
                 StructValue structure => _structTypeRegistry.SerializeValue(structure),
                 ArrayValue array => _structTypeRegistry.SerializeTypedValue($"{array.ElementTypeName}[]", array),
                 _ => null

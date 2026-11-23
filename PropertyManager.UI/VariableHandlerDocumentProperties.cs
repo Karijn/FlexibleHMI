@@ -44,6 +44,22 @@ public sealed class VariableHandlerDocumentProperties : ITreeDocumentProperties
             {
                 properties.Add(new TreeDocumentProperty(name, "Boolean", boolean.ToString()));
             }
+            else if (_variableHandler.TryGet<string>(name, out var text))
+            {
+                properties.Add(new TreeDocumentProperty(name, "String", text));
+            }
+            else if (_variableHandler.TryGet<DateTime>(name, out var dateTime))
+            {
+                properties.Add(new TreeDocumentProperty(name, "DateTime", dateTime.ToString("O", CultureInfo.InvariantCulture)));
+            }
+            else if (_variableHandler.TryGet<TimeSpan>(name, out var timeSpan))
+            {
+                properties.Add(new TreeDocumentProperty(name, "TimeSpan", timeSpan.ToString("c", CultureInfo.InvariantCulture)));
+            }
+            else if (_variableHandler.TryGet<System.Drawing.Color>(name, out var color))
+            {
+                properties.Add(new TreeDocumentProperty(name, "Color", ColorValue.Format(color)));
+            }
             else if (_variableHandler.TryGet<StructValue>(name, out var structure) && structure is not null)
             {
                 properties.Add(new TreeDocumentProperty(
@@ -132,6 +148,10 @@ public sealed class VariableHandlerDocumentProperties : ITreeDocumentProperties
             "Integer" when int.TryParse(property.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) => value,
             "Double" when double.TryParse(property.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && double.IsFinite(value) => value,
             "Boolean" when BooleanValueParser.TryParse(property.Value, out var value) => value,
+            "String" => property.Value,
+            "DateTime" when DateTime.TryParse(property.Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var value) => value,
+            "TimeSpan" when TimeSpan.TryParse(property.Value, CultureInfo.InvariantCulture, out var value) => value,
+            "Color" when ColorValue.TryParse(property.Value, out var value) => value,
             _ => throw new InvalidDataException($"Property '{property.Name}' has an invalid or unsupported value.")
         };
     }

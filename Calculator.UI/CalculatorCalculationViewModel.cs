@@ -2,20 +2,24 @@
 using CommunityToolkit.Mvvm.Input;
 using PropertyManager.Interfaces;
 using System.Globalization;
+using System.IO;
+using System.Text.Json;
 
 namespace Calculator.UI;
 
 public partial class CalculatorCalculationViewModel : ObservableObject
 {
     private readonly IVariableHandler _variableHandler;
+    private readonly IStructTypeRegistry _structTypeRegistry;
 
-    public CalculatorCalculationViewModel(IVariableHandler variableHandler, string outputPropertyName = "CalculatedProperty")
+    public CalculatorCalculationViewModel(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry, string outputPropertyName = "CalculatedProperty")
     {
         _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
+        _structTypeRegistry = structTypeRegistry ?? throw new ArgumentNullException(nameof(structTypeRegistry));
         OutputPropertyName = outputPropertyName;
     }
 
-    public IReadOnlyList<string> OutputTypes { get; } = ["Double", "Integer", "Boolean"];
+    public IReadOnlyList<string> OutputTypes { get; } = ["Double", "Integer", "Boolean", "String", "DateTime", "TimeSpan", "Color", "Struct", "Array"];
 
     [ObservableProperty]
     private string _outputPropertyName = string.Empty;
@@ -91,6 +95,82 @@ public partial class CalculatorCalculationViewModel : ObservableObject
                 return;
             }
 
+            if (OutputType == "String")
+            {
+                var textValue = value.AsString();
+                _variableHandler.Set(outputName, textValue);
+                Result = textValue;
+                Status = $"Live result in '{outputName}'.";
+                return;
+            }
+
+            if (OutputType == "DateTime")
+            {
+                if (!value.IsDateTime)
+                {
+                    throw new InvalidOperationException("The expression result must be a DateTime for this output type.");
+                }
+
+                _variableHandler.Set(outputName, value.DateTime);
+                Result = value.DateTime.ToString("O", CultureInfo.InvariantCulture);
+                Status = $"Live result in '{outputName}'.";
+                return;
+            }
+
+            if (OutputType == "TimeSpan")
+            {
+                if (!value.IsTimeSpan)
+                {
+                    throw new InvalidOperationException("The expression result must be a TimeSpan for this output type.");
+                }
+
+                _variableHandler.Set(outputName, value.TimeSpan);
+                Result = value.TimeSpan.ToString("c", CultureInfo.InvariantCulture);
+                Status = $"Live result in '{outputName}'.";
+                return;
+            }
+
+            if (OutputType == "Color")
+            {
+                if (!value.IsColor)
+                {
+                    throw new InvalidOperationException("The expression result must be a Color for this output type.");
+                }
+
+                _variableHandler.Set(outputName, value.Color);
+                Result = ColorValue.Format(value.Color);
+                Status = $"Live result in '{outputName}'.";
+                return;
+            }
+
+            if (OutputType is "Struct" or "Array")
+            {
+                if (!value.IsJson) throw new InvalidOperationException("The expression result must be a JSON object or array.");
+                string typeName;
+                object previous;
+                if (OutputType == "Struct" && _variableHandler.TryGet<StructValue>(outputName, out var structure) && structure is not null)
+                {
+                    typeName = structure.TypeName;
+                    previous = structure;
+                }
+                else if (OutputType == "Array" && _variableHandler.TryGet<ArrayValue>(outputName, out var array) && array is not null)
+                {
+                    typeName = $"{array.ElementTypeName}[]";
+                    previous = array;
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Create the destination {OutputType} property before calculating its value.");
+                }
+
+                var parsed = _structTypeRegistry.ParseTypedValue(typeName, value.Json.GetRawText());
+                var result = _structTypeRegistry.SerializeTypedValue(typeName, parsed);
+                if (result != _structTypeRegistry.SerializeTypedValue(typeName, previous)) _variableHandler.Set(outputName, parsed);
+                Result = result;
+                Status = $"Live result in '{outputName}'.";
+                return;
+            }
+
             if (!value.IsNumber)
             {
                 throw new InvalidOperationException("The expression result must be numeric for this output type.");
@@ -121,14 +201,14 @@ public partial class CalculatorCalculationViewModel : ObservableObject
 
             Status = $"Live result in '{outputName}'.";
         }
-        catch (Exception exception) when (exception is InvalidOperationException or FormatException or OverflowException or KeyNotFoundException)
+        catch (Exception exception) when (exception is InvalidOperationException or FormatException or OverflowException or KeyNotFoundException or JsonException or InvalidDataException)
         {
             Result = "-";
             Status = exception.Message;
         }
     }
 
-    public CalculatorCalculationViewModel Copy(IVariableHandler variableHandler) => new(variableHandler, OutputPropertyName)
+    public CalculatorCalculationViewModel Copy(IVariableHandler variableHandler, IStructTypeRegistry structTypeRegistry) => new(variableHandler, structTypeRegistry, OutputPropertyName)
     {
         Expression = Expression,
         OutputType = OutputType,

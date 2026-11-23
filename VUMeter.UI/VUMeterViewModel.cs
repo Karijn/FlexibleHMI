@@ -1,204 +1,174 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FlexibleHMI.Interfaces;
 using PropertyManager.Interfaces;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
+using System.Windows.Threading;
 
 namespace VUMeter.UI;
 
-internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocumentData, IDocumentDataChangeNotifier
+internal sealed partial class VUMeterViewModel : TreeItemNode, ITreeItemDocumentData, IDocumentDataChangeNotifier, IDocumentItemDetached
 {
-    private readonly IVariableHandler _variableHandler;
-    private string _selectedPropertyName = string.Empty;
-    private double _needleAngle;
-    private string _status = "Select a numeric property.";
+    private readonly IVariableHandler _variables;
+    private readonly Dispatcher _dispatcher;
+    private bool _detached = true;
+    private int _version;
+    private bool _showLegend;
+    private string _showLegendProperty = "";
+    private bool _autoSelect = true;
 
-    public VUMeterViewModel(IVariableHandler variableHandler)
+    public VUMeterViewModel(IVariableHandler variables)
     {
-        _variableHandler = variableHandler ?? throw new ArgumentNullException(nameof(variableHandler));
+        _variables = variables ?? throw new ArgumentNullException(nameof(variables));
+        _dispatcher = Dispatcher.CurrentDispatcher;
         Name = "VU Meter";
-        Description = "Display a numeric property as a needle angle.";
+        Description = "Display numeric properties as needle angles.";
         Image = VUMeterCreator.GetIcon();
-        _variableHandler.VariableChanged += OnVariableChanged;
-        RefreshPropertyNames();
+        Inputs.Add(new VUMeterInputViewModel(InputChanged));
+        RefreshNames();
     }
 
     public event EventHandler? DocumentDataChanged;
-
-    public double MaximumAngle { get => field; set => SetProperty(ref field, value); } = 50;
-
     public ObservableCollection<string> NumericPropertyNames { get; } = [];
-
-    public string SelectedPropertyName
+    public ObservableCollection<string> BooleanPropertyNames { get; } = [];
+    public ObservableCollection<VUMeterInputViewModel> Inputs { get; } = [];
+    public IReadOnlyList<string> Colors => XYPointViewModel.Colors;
+    public double MaximumAngle => 50;
+    public bool ShowLegend
     {
-        get => _selectedPropertyName;
-        set
-        {
-            var propertyName = value?.Trim() ?? string.Empty;
-            if (!SetProperty(ref _selectedPropertyName, propertyName))
-            {
-                return;
-            }
-
-            UpdateNeedle();
-            DocumentDataChanged?.Invoke(this, EventArgs.Empty);
-        }
+        get => _showLegend;
+        set { if (SetProperty(ref _showLegend, value)) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } }
     }
-
-    public double NeedleAngle
+    public string ShowLegendProperty
     {
-        get => _needleAngle;
-        private set => SetProperty(ref _needleAngle, value);
+        get => _showLegendProperty;
+        set { if (SetProperty(ref _showLegendProperty, value ?? "")) { NotifyLegendChanged(); DocumentDataChanged?.Invoke(this, EventArgs.Empty); } }
     }
-
-    public string Status
+    public bool EffectiveShowLegend => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Visible;
+    public string LegendStatus => LegendVisibility.Evaluate(_variables, ShowLegendProperty, ShowLegend).Status;
+    private void NotifyLegendChanged()
     {
-        get => _status;
-        private set => SetProperty(ref _status, value);
+        OnPropertyChanged(nameof(EffectiveShowLegend));
+        OnPropertyChanged(nameof(LegendStatus));
     }
-
-    public bool IsPeakActive => NeedleAngle >= MaximumAngle - 5;
-
     public override string Kind => VUMeterCreator.jsonkey;
-
     public override int MaxChildren => 0;
-
     public override string ChildRule => "No Children here";
-
     public override bool CanAcceptChildren => false;
+
+    [RelayCommand]
+    private void AddInput()
+    {
+        var input = new VUMeterInputViewModel(InputChanged) { Color = Colors[Inputs.Count % Colors.Count] };
+        Inputs.Add(input);
+        DocumentDataChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void RemoveInput(VUMeterInputViewModel? input)
+    {
+        if (input is null || !Inputs.Remove(input)) return;
+        _autoSelect = false;
+        DocumentDataChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     public override TreeItemNode Copy()
     {
-        var copy = new VUMeterViewModel(_variableHandler);
+        var copy = new VUMeterViewModel(_variables);
         Copy(copy);
         copy.LoadDocumentData(SaveDocumentData());
         return copy;
     }
 
-    public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(
-        new VUMeterDocumentSettings(SelectedPropertyName));
+    public JsonElement SaveDocumentData() => JsonSerializer.SerializeToElement(new Settings(null,
+        Inputs.Select(i => new InputSettings(i.PropertyName, i.Color)).ToList(), ShowLegend, ShowLegendProperty));
 
     public void LoadDocumentData(JsonElement data)
     {
-        var settings = data.Deserialize<VUMeterDocumentSettings>()
-            ?? throw new InvalidDataException("The document contains invalid VU meter settings.");
-        SelectedPropertyName = settings.PropertyName ?? string.Empty;
+        var settings = data.Deserialize<Settings>() ?? throw new InvalidDataException("Invalid VU meter settings.");
+        if (settings.ShowLegendProperty is null || (settings.Inputs is not null && settings.Inputs.Any(i => i is null || i.PropertyName is null || !Colors.Contains(i.Color, StringComparer.Ordinal))))
+            throw new InvalidDataException("Invalid VU meter input settings.");
+        _autoSelect = false;
+        Inputs.Clear();
+        foreach (var saved in settings.Inputs ?? [new InputSettings(settings.PropertyName ?? string.Empty, "Black")])
+        {
+            var input = new VUMeterInputViewModel(InputChanged) { PropertyName = saved.PropertyName, Color = saved.Color };
+            Inputs.Add(input);
+            UpdateInput(input);
+        }
+        ShowLegend = settings.ShowLegend;
+        ShowLegendProperty = settings.ShowLegendProperty;
     }
 
-    public override void StopRuntimeActivity() =>
-        _variableHandler.VariableChanged -= OnVariableChanged;
+    public void OnDocumentItemDetached()
+    {
+        _detached = true;
+        Interlocked.Increment(ref _version);
+        _variables.VariableChanged -= OnVariableChanged;
+    }
+
+    public void OnDocumentItemReattached()
+    {
+        if (!_detached) return;
+        _detached = false;
+        Interlocked.Increment(ref _version);
+        _variables.VariableChanged += OnVariableChanged;
+        RefreshNames();
+        foreach (var input in Inputs) UpdateInput(input);
+        NotifyLegendChanged();
+    }
+
+    private void InputChanged(VUMeterInputViewModel input)
+    {
+        _autoSelect = false;
+        UpdateInput(input);
+        DocumentDataChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     private void OnVariableChanged(object? sender, VariableChanged change)
     {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess())
+        var version = Volatile.Read(ref _version);
+        void Apply()
         {
-            ApplyVariableChange(change);
-            return;
+            if (_detached || version != Volatile.Read(ref _version)) return;
+            if (change.OldValue is null || change.NewValue is null || change.OldValue.GetType() != change.NewValue.GetType()) RefreshNames();
+            foreach (var input in Inputs)
+                if (string.Equals(input.PropertyName, change.Name, StringComparison.Ordinal)) UpdateInput(input);
+            if (string.Equals(ShowLegendProperty, change.Name, StringComparison.Ordinal)) NotifyLegendChanged();
         }
-
-        dispatcher.BeginInvoke(new Action(() => ApplyVariableChange(change)));
+        if (_dispatcher.CheckAccess()) Apply();
+        else _dispatcher.BeginInvoke(new Action(Apply));
     }
 
-    private void ApplyVariableChange(VariableChanged change)
+    private void RefreshNames()
     {
-        RefreshPropertyNames();
-        if (string.Equals(change.Name, SelectedPropertyName, StringComparison.Ordinal))
-        {
-            UpdateNeedle();
-        }
-    }
-
-    private void RefreshPropertyNames()
-    {
-        var propertyNames = _variableHandler.GetVariableNames<double>()
-            .Concat(_variableHandler.GetVariableNames<int>())
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(name => name, StringComparer.Ordinal)
-            .ToArray();
-
-        var availableNames = propertyNames.ToHashSet(StringComparer.Ordinal);
+        var names = _variables.GetVariableNames<double>().Concat(_variables.GetVariableNames<int>())
+            .Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal).ToArray();
         for (var index = NumericPropertyNames.Count - 1; index >= 0; index--)
-        {
-            if (!availableNames.Contains(NumericPropertyNames[index]))
-            {
-                NumericPropertyNames.RemoveAt(index);
-            }
-        }
-
-        foreach (var name in propertyNames)
-        {
-            if (NumericPropertyNames.Contains(name, StringComparer.Ordinal))
-            {
-                continue;
-            }
-
-            var index = 0;
-            while (index < NumericPropertyNames.Count &&
-                   StringComparer.Ordinal.Compare(NumericPropertyNames[index], name) < 0)
-            {
-                index++;
-            }
-
-            NumericPropertyNames.Insert(index, name);
-        }
-
-        if (string.IsNullOrEmpty(SelectedPropertyName))
-        {
-            if (NumericPropertyNames.Count > 0)
-            {
-                SelectedPropertyName = NumericPropertyNames[0];
-            }
-            else
-            {
-                UpdateNeedle();
-            }
-        }
-        else if (!NumericPropertyNames.Contains(SelectedPropertyName, StringComparer.Ordinal))
-        {
-            SelectedPropertyName = string.Empty;
-        }
-        else
-        {
-            UpdateNeedle();
-        }
+            if (!names.Contains(NumericPropertyNames[index], StringComparer.Ordinal)) NumericPropertyNames.RemoveAt(index);
+        foreach (var name in names)
+            if (!NumericPropertyNames.Contains(name, StringComparer.Ordinal)) NumericPropertyNames.Add(name);
+        var booleanNames = _variables.GetVariableNames<bool>().Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal).ToArray();
+        for (var index = BooleanPropertyNames.Count - 1; index >= 0; index--)
+            if (!booleanNames.Contains(BooleanPropertyNames[index], StringComparer.Ordinal)) BooleanPropertyNames.RemoveAt(index);
+        foreach (var name in booleanNames)
+            if (!BooleanPropertyNames.Contains(name, StringComparer.Ordinal)) BooleanPropertyNames.Add(name);
+        if (_autoSelect && Inputs.Count == 1 && string.IsNullOrEmpty(Inputs[0].PropertyName) && names.Length > 0)
+            Inputs[0].PropertyName = names[0];
     }
 
-    private void UpdateNeedle()
+    private void UpdateInput(VUMeterInputViewModel input)
     {
-        if (string.IsNullOrWhiteSpace(SelectedPropertyName))
+        double? value = null;
+        if (!string.IsNullOrWhiteSpace(input.PropertyName))
         {
-            NeedleAngle = 0;
-            OnPropertyChanged(nameof(IsPeakActive));
-            Status = NumericPropertyNames.Count == 0
-                ? "Add an Integer or Double property in Property Manager."
-                : "Select a numeric property.";
-            return;
+            if (_variables.TryGet<double>(input.PropertyName, out var number) && double.IsFinite(number)) value = number;
+            else if (_variables.TryGet<int>(input.PropertyName, out var integer)) value = integer;
         }
-
-        double angle;
-        if (_variableHandler.TryGet<double>(SelectedPropertyName, out var number) && double.IsFinite(number))
-        {
-            angle = number;
-        }
-        else if (_variableHandler.TryGet<int>(SelectedPropertyName, out var integer))
-        {
-            angle = integer;
-        }
-        else
-        {
-            NeedleAngle = 0;
-            OnPropertyChanged(nameof(IsPeakActive));
-            Status = $"Property '{SelectedPropertyName}' is unavailable or not numeric.";
-            return;
-        }
-
-        NeedleAngle = Math.Clamp(angle, -MaximumAngle, MaximumAngle);
-        OnPropertyChanged(nameof(IsPeakActive));
-        Status = $"{SelectedPropertyName}: {angle:0.##}°";
+        input.Update(value, MaximumAngle);
     }
 
-    private sealed record VUMeterDocumentSettings(string? PropertyName);
+    private sealed record Settings(string? PropertyName = null, List<InputSettings>? Inputs = null, bool ShowLegend = false, string ShowLegendProperty = "");
+    private sealed record InputSettings(string PropertyName, string Color);
 }
