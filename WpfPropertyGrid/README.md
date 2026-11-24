@@ -1,5 +1,5 @@
 # This is a modified version of WpfPropertyGrid by Simon Mourier
-  [The original version can be found here](/https://github.com/smourier/WpfPropertyGrid)
+  [The original version can be found here](https://github.com/smourier/WpfPropertyGrid)
 
 
 # WpfPropertyGrid
