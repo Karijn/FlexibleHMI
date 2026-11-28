@@ -1047,8 +1047,7 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
 
-        siblings.RemoveAt(currentIndex);
-        siblings.Insert(destinationIndex, item);
+        ((ObservableCollection<TreeItemNode>)siblings).Move(currentIndex, destinationIndex);
         IsDirty = true;
         MakeCurrentAndReveal(item);
         DropStatus = $"Moved {item.Name} to the {(first ? "first" : "last")} child position.";
@@ -1143,8 +1142,7 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        siblings.RemoveAt(index);
-        siblings.Insert(destinationIndex, item);
+        ((ObservableCollection<TreeItemNode>)siblings).Move(index, destinationIndex);
         IsDirty = true;
         MakeCurrentAndReveal(item);
         DropStatus = $"Moved {item.Name} {(offset < 0 ? "up" : "down")}.";
@@ -1205,7 +1203,7 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        siblings.RemoveAt(index);
+        siblings.Remove(item);
         newParent.Children.Insert(newParent.Children.Count, item);
         IsDirty = true;
         MakeCurrentAndReveal(item);
@@ -1363,14 +1361,60 @@ public partial class MainWindowViewModel : ObservableObject
         return true;
     }
 
+    /// <summary>Moves or copies an item onto a grid cell using document tree operations.</summary>
+    public bool DropOnGrid(TreeDragData data, TreeItemNode target, int row, int column, bool copy)
+    {
+        if (target is not IGridDropTarget grid || !IsInTree(target) || !grid.ContainsCell(row, column))
+        {
+            SetDropStatus("Drop is not allowed at this position.");
+            return false;
+        }
+
+        var sourceSpan = data.Node is { Parent: IGridDropTarget source } node ? source.GetChildSpan(node) : ((int, int)?)null;
+        var sameGrid = !copy && data.Node is { } moving && ReferenceEquals(moving.Parent, target) && IsInTree(moving);
+        if (!copy)
+        {
+            var occupants = grid.GetChildrenAt(row, column, sameGrid ? data.Node : null);
+            if (occupants.Count > 1 || (occupants.Count == 1 && !sameGrid))
+            {
+                SetDropStatus("Cannot move onto an occupied cell unless swapping one child in the same grid.");
+                return false;
+            }
+            if (occupants.Count == 1)
+            {
+                grid.SwapChildren(data.Node!, occupants[0], row, column);
+                SetDropStatus($"Swapped {data.Node!.Name} and {occupants[0].Name}.");
+                return true;
+            }
+        }
+
+        TreeItemNode? item;
+        if (sameGrid)
+            item = data.Node;
+        else if (!Drop(data, target, DropPosition.Child, copy, out item))
+        {
+            SetDropStatus("Drop is not allowed at this position.");
+            return false;
+        }
+
+        grid.PositionChild(item!, row, column, sourceSpan);
+        SetDropStatus($"{(copy ? "Copied" : "Moved")} {item!.Name} to row {row}, column {column}.");
+        return true;
+    }
+
     /// <summary>Applies a valid tree drag-and-drop operation.</summary>
     /// <param name="data">The dragged node or available-item option.</param>
     /// <param name="target">The target node, or <see langword="null"/> to target the root.</param>
     /// <param name="position">The insertion position relative to the target.</param>
     /// <param name="copy"><see langword="true"/> to copy a dragged node instead of moving it.</param>
     /// <returns><see langword="true"/> if the item was inserted or moved; otherwise <see langword="false"/>.</returns>
-    public bool Drop(TreeDragData data, TreeItemNode? target, DropPosition position, bool copy)
+    public bool Drop(TreeDragData data, TreeItemNode? target, DropPosition position, bool copy) =>
+        Drop(data, target, position, copy, out _);
+
+    /// <summary>Applies a tree drop and returns the inserted or moved item.</summary>
+    public bool Drop(TreeDragData data, TreeItemNode? target, DropPosition position, bool copy, out TreeItemNode? droppedItem)
     {
+        droppedItem = null;
         if (!CanDrop(data, target, position, copy))
         {
             return false;
@@ -1400,9 +1444,16 @@ public partial class MainWindowViewModel : ObservableObject
                     ? RootItems
                     : item.Parent.Children;
                 var sourceIndex = sourceItems.IndexOf(item);
-                if (ReferenceEquals(sourceItems, destinationItems) && sourceIndex < insertionIndex)
+                if (ReferenceEquals(sourceItems, destinationItems))
                 {
-                    insertionIndex--;
+                    if (sourceIndex < insertionIndex) insertionIndex--;
+                    ((ObservableCollection<TreeItemNode>)sourceItems).Move(sourceIndex, insertionIndex);
+                    IsDirty = true;
+                    MakeCurrentAndReveal(item);
+                    DropStatus = "Tree moved.";
+                    RaiseAddCommandsCanExecuteChanged();
+                    droppedItem = item;
+                    return true;
                 }
 
                 if (item.Parent is not null)
@@ -1440,6 +1491,7 @@ public partial class MainWindowViewModel : ObservableObject
             ? $"Added {item.Name}."
             : copy ? "Tree copied." : "Tree moved.";
         RaiseAddCommandsCanExecuteChanged();
+        droppedItem = item;
         return true;
     }
 

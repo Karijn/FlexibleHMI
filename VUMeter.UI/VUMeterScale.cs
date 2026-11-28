@@ -5,7 +5,7 @@ using System.Windows.Shapes;
 
 namespace VUMeter.UI;
 /// <summary>
-/// Provides the WPF view used to configure and display a VU meter.
+/// Provides the WPF view used to display a VU meter.
 /// </summary>
 public partial class VUMeterView
 {

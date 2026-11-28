@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputPath>..\FlexibleHMI\bin\$(Configuration)\net10.0-windows\Addins\</OutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Containers\Containers.csproj" />
+    <ProjectReference Include="..\Containers.Interfaces\Containers.Interfaces.csproj" />
+    <ProjectReference Include="..\FlexibleHMI.Interfaces\FlexibleHMI.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

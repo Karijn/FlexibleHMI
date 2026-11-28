@@ -1,0 +1,28 @@
+<UserControl x:Class="Inputs.UI.RadioButtonSetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Inputs.UI">
+    <UserControl.Resources>
+        <local:OptionSelectedConverter x:Key="OptionSelected" />
+    </UserControl.Resources>
+    <!--<local:InputView>
+        <local:InputView.InputTemplate>
+            <DataTemplate>-->
+                <ItemsControl ItemsSource="{Binding Options}" IsEnabled="{Binding IsAvailable}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Content="{Binding}" Command="{Binding DataContext.SelectOptionCommand, RelativeSource={RelativeSource AncestorType=local:InputView}}" CommandParameter="{Binding}">
+                                <RadioButton.IsChecked>
+                                    <MultiBinding Converter="{StaticResource OptionSelected}" Mode="OneWay">
+                                        <Binding />
+                                        <Binding Path="DataContext.SelectedOption" RelativeSource="{RelativeSource AncestorType=local:InputView}" />
+                                    </MultiBinding>
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            <!--</DataTemplate>
+        </local:InputView.InputTemplate>
+    </local:InputView>-->
+</UserControl>

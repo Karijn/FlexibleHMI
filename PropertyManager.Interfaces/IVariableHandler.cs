@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace PropertyManager.Interfaces;
+﻿namespace PropertyManager.Interfaces;
 
 /// <summary>
 /// Provides thread-safe storage and change notifications for named variables

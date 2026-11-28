@@ -70,15 +70,27 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ToolsItemStyle" TargetType="ContentPresenter">
+        <Style x:Key="PropertiesStyle" TargetType="ContentPresenter">
             <Setter Property="Visibility" Value="Collapsed" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Kind}" Value="propertymanager">
                     <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CalculationStyle" TargetType="ContentPresenter">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
                 <DataTrigger Binding="{Binding Kind}" Value="calculation">
                     <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FunctionStyle" TargetType="ContentPresenter">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
                 <DataTrigger Binding="{Binding Kind}" Value="functiongenerator">
                     <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
@@ -546,7 +558,7 @@
                 <!-- -->
                 <Grid Grid.Column="0" RowDefinitions="* Auto *">
 
-                    
+
                     <!--<ListBox Grid.Row="0" ItemsSource="{Binding AvailableItems}"
                      SelectedItem="{Binding SelectedItemOption, Mode=TwoWay}"
                      PreviewMouseLeftButtonDown="DragSource_PreviewMouseLeftButtonDown"
@@ -692,6 +704,7 @@
                           DragCompleted="LeftPanelSplitter_DragCompleted"                          />
 
             <TabControl Grid.Column="2">
+
                 <TabItem Header="Main document">
                     <ItemsControl ItemsSource="{Binding RootItems}" ItemContainerStyle="{StaticResource MainDocumentItemStyle}">
                         <ItemsControl.Template>
@@ -703,14 +716,32 @@
                         </ItemsControl.Template>
                     </ItemsControl>
                 </TabItem>
-                <TabItem Header="Properties / Calculator / Function Generator">
+
+                <TabItem Header="Properties">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding RootItems}" ItemContainerStyle="{StaticResource ToolsItemStyle}" />
+                        <ItemsControl ItemsSource="{Binding RootItems}"
+                                      ItemContainerStyle="{StaticResource PropertiesStyle}" />
                     </ScrollViewer>
                 </TabItem>
+
+                <TabItem Header="Calculator">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RootItems}"
+                                      ItemContainerStyle="{StaticResource CalculationStyle}" />
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Function Generator">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RootItems}"
+                                      ItemContainerStyle="{StaticResource FunctionStyle}" />
+                    </ScrollViewer>
+                </TabItem>
+
                 <TabItem Header="Communication Manager">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding RootItems}" ItemContainerStyle="{StaticResource CommunicationItemStyle}" />
+                        <ItemsControl ItemsSource="{Binding RootItems}" 
+                                      ItemContainerStyle="{StaticResource CommunicationItemStyle}" />
                     </ScrollViewer>
                 </TabItem>
             </TabControl>
@@ -762,14 +793,25 @@
                         </TextBlock.LayoutTransform>
                     </TextBlock>
                 </Expander.Header>
-
-                <pg:PropertyGrid HorizontalAlignment="Stretch"
+                <ScrollViewer >
+                    <Grid RowDefinitions="auto 20 auto">
+                        <!--<pg:PropertyGrid HorizontalAlignment="Stretch"
                                  VerticalAlignment="Top" 
-                                 SelectedObject="{Binding SelectedTreeItem}" />
+                                 SelectedObject="{Binding SelectedTreeItem}" />-->
+
+                        <ContentControl x:Name="FirstContent" 
+                            Grid.Row="0" 
+                            Content="{Binding SelectedTreeItem}" />
+
+                        <ContentControl x:Name="SecondContent" 
+                            Grid.Row="2" 
+                            Content="{Binding SelectedTreeItem}" />
+                    </Grid>
+                </ScrollViewer>
             </Expander>
         </Grid>
 
-        
+
         <StatusBar Grid.Row="4" Margin="-16,8,-16,-16"
                    Background="{DynamicResource SurfaceBrush}"
                    BorderBrush="{DynamicResource BorderBrush}"

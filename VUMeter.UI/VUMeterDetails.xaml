@@ -1,0 +1,37 @@
+<UserControl x:Class="VUMeter.UI.VUMeterDetails"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="8">
+            <TextBlock Text="VU Meter" FontSize="20" Margin="0,0,0,8" />
+            <CheckBox x:Name="ShowLegendEditor" Content="Show legend (manual)" IsChecked="{Binding ShowLegend}" Margin="0,0,0,8" />
+            <TextBlock Text="Legend property" />
+            <ComboBox x:Name="LegendPropertyEditor" IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}"
+                      Text="{Binding ShowLegendProperty, UpdateSourceTrigger=LostFocus}" Margin="0,0,0,8"
+                      ToolTip="Leave blank to use the manual setting. An unavailable or non-Boolean property hides the legend." />
+            <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Text="{Binding LegendStatus}" />
+            <TextBlock Text="Inputs" FontWeight="SemiBold" Margin="0,8,0,4" />
+            <ItemsControl ItemsSource="{Binding Inputs}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Text="Angle property" />
+                            <ComboBox x:Name="InputPropertyEditor" IsEditable="True"
+                                      ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      Text="{Binding PropertyName, UpdateSourceTrigger=LostFocus}" />
+                            <TextBlock Text="Needle color" Margin="0,4,0,0" />
+                            <ComboBox x:Name="InputColorEditor"
+                                      ItemsSource="{Binding DataContext.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedItem="{Binding Color}" />
+                            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+                            <Button Content="Remove" Padding="8,4" Margin="0,4,0,0" HorizontalAlignment="Left"
+                                    Command="{Binding DataContext.RemoveInputCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="Add input" Command="{Binding AddInputCommand}" Padding="8,4" HorizontalAlignment="Left" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

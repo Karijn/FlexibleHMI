@@ -7,32 +7,6 @@
         <BooleanToVisibilityConverter x:Key="BooleanVisibility" />
     </UserControl.Resources>
     <DockPanel Margin="12">
-        <StackPanel DockPanel.Dock="Top">
-            <WrapPanel Margin="0,0,0,8">
-                <Button Content="Add input" Command="{Binding AddInputCommand}" Padding="8,4" Margin="0,0,8,0" />
-                <CheckBox Content="Show legend (manual)" IsChecked="{Binding ShowLegend}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <TextBlock Text="Legend property" VerticalAlignment="Center" Margin="0,0,4,0" />
-                <ComboBox Width="150" IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}" Text="{Binding ShowLegendProperty, UpdateSourceTrigger=LostFocus}"
-                          ToolTip="Leave blank to use the manual setting. An unavailable or non-Boolean property hides the legend." />
-            </WrapPanel>
-            <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Text="{Binding LegendStatus}" />
-            <ItemsControl ItemsSource="{Binding Inputs}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="0,0,0,6">
-                            <WrapPanel>
-                                <TextBlock Text="Angle property" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                <ComboBox Width="180" IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                          Text="{Binding PropertyName, UpdateSourceTrigger=LostFocus}" />
-                                <ComboBox Width="90" Margin="8,0" ItemsSource="{Binding DataContext.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedItem="{Binding Color}" />
-                                <Button Content="Remove" Padding="8,4" Command="{Binding DataContext.RemoveInputCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                            </WrapPanel>
-                            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
         <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Border Width="500" Height="300" Padding="10" CornerRadius="8" Background="#4A3728">
                 <Grid>

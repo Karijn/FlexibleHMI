@@ -1,0 +1,26 @@
+<UserControl x:Class="Inputs.UI.Potmeter.PotentiometerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Inputs.UI"
+             xmlns:potmeter="clr-namespace:Inputs.UI.Potmeter">
+    <!--<local:InputView>
+        <local:InputView.InputTemplate>
+            <DataTemplate>-->
+                <potmeter:PotentiometerControl Width="120" Height="120"
+                                            HorizontalAlignment="Left"
+                                            Minimum="{Binding Minimum, Mode=TwoWay}" 
+                                            Maximum="{Binding Maximum, Mode=TwoWay}" 
+                                            BackColor="{Binding BackColor, Mode=TwoWay}"
+                                            BackColorDisabled="{Binding BackColorDisabled, Mode=TwoWay}"
+                                            ForeColor="{Binding ForeColor, Mode=TwoWay}"
+                                            BorderColor="{Binding BorderColor, Mode=TwoWay}"
+                                            Step="{Binding NumericStep}" 
+                                            Value="{Binding NumericValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                            IsEnabled="{Binding IsAvailable}" 
+                                            AutomationProperties.Name="Potentiometer" 
+                                            ToolTip="Drag around the dial or use the arrow keys." 
+                                            />
+            <!--</DataTemplate>
+        </local:InputView.InputTemplate>
+    </local:InputView>-->
+</UserControl>

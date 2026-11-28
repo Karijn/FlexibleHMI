@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="Inputs.UI.Slider.SliderDetails"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Inputs.UI.Slider"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+          ColumnDefinitions="Auto *"
+          >
+
+        <TextBlock Grid.ColumnSpan="2"
+                   Text="Potentiometer Details" 
+                   HorizontalAlignment="Center" 
+                   FontSize="20"
+                   Height="32"/>
+
+        <TextBlock Grid.Row="1" 
+                   Margin="2 0 5 0"
+                   Text="Name" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Name}" 
+                 FontSize="16" 
+                 FontWeight="SemiBold" 
+                 />
+
+        <TextBlock Grid.Row="2"
+                   Margin="2 0 5 0"
+                   Text="Minimum" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="2" Grid.Column="1"  
+                 Text="{Binding Minimum, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" 
+                   Margin="2 0 5 0"
+                   Text="Maximum" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="3" Grid.Column="1" 
+                 Text="{Binding Maximum, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0" 
+                   Margin="2 0 5 0"
+                   Text="Value" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="4" Grid.Column="1" 
+                 Text="{Binding NumericValue, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+        <TextBlock Grid.Row="5" Grid.Column="0" 
+                   Margin="2 0 5 0"
+                   Text="Step" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="5" Grid.Column="1" 
+                 Text="{Binding Step, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+        <TextBlock Grid.Row="6" 
+                   Margin="2 0 5 0"
+                   Text="Property" 
+                   VerticalAlignment="Center" />
+        <ComboBox Grid.Row="6" Grid.Column="1" 
+                  IsEditable="True" 
+                  ItemsSource="{Binding PropertyNames}" 
+                  Text="{Binding PropertyName, UpdateSourceTrigger=LostFocus}" />
+
+        <TextBlock Grid.Row="7" Grid.Column="0" 
+                   Margin="2 0 5 0"
+                   Text="Back Color" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="7" Grid.Column="1" 
+                 Text="{Binding BackColor, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+
+        <TextBlock Grid.Row="8" Grid.Column="0" 
+                   Margin="2 0 5 0"
+                   Text="Fore Color" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="8" Grid.Column="1" 
+                 Text="{Binding ForeColor, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+
+        <TextBlock Grid.Row="9" Grid.Column="0" 
+                   Margin="2 0 5 0"
+                   Text="Border Color" 
+                   VerticalAlignment="Center" />
+        <TextBox Grid.Row="9" Grid.Column="1" 
+                 Text="{Binding BorderColor, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+
+    </Grid>
+
+</UserControl>

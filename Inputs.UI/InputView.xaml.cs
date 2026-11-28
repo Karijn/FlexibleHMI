@@ -1,24 +1,22 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace Inputs.UI;
 
-/// <summary>Displays the editor and interactive control for a property-bound input item.</summary>
+/// <summary>Displays the status and interactive control for a property-bound input item.</summary>
 public partial class InputView : UserControl
 {
+    /// <summary>Identifies the template for the input control displayed by this view.</summary>
+    public static readonly DependencyProperty InputTemplateProperty = DependencyProperty.Register(
+        nameof(InputTemplate), typeof(DataTemplate), typeof(InputView));
+
+    /// <summary>Gets or sets the input control template.</summary>
+    public DataTemplate InputTemplate
+    {
+        get => (DataTemplate)GetValue(InputTemplateProperty);
+        set => SetValue(InputTemplateProperty, value);
+    }
+
     /// <summary>Creates and initializes the input editor view.</summary>
     public InputView() => InitializeComponent();
-}
-
-/// <summary>Converts a radio-option and selected-option pair to a checked state.</summary>
-public sealed class OptionSelectedConverter : IMultiValueConverter
-{
-    /// <inheritdoc />
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
-        values.Length == 2 && values[0] is string option && values[1] is string selected && option == selected;
-    /// <inheritdoc />
-    /// <exception cref="NotSupportedException">Conversion from selected state to source values is not supported.</exception>
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }

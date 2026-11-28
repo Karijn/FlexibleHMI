@@ -1,0 +1,67 @@
+<UserControl x:Class="VUMeter.UI.OscilloscopeDetails"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="8">
+            <TextBlock Text="Oscilloscope" FontSize="20" Margin="0,0,0,8" />
+            <CheckBox x:Name="ShowLegendEditor" Content="Show legend (manual)" IsChecked="{Binding ShowLegend}" Margin="0,0,0,8" />
+            <TextBlock Text="Legend property" />
+            <ComboBox x:Name="LegendPropertyEditor" IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}" Text="{Binding ShowLegendProperty, UpdateSourceTrigger=LostFocus}" ToolTip="Leave blank to use the manual setting. An unavailable or non-Boolean property hides the legend." />
+            <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Text="{Binding LegendStatus}" />
+            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,0,0,6" />
+            <TextBlock Text="Seconds/div" />
+            <TextBox x:Name="SpeedEditor" Text="{Binding Speed, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+            <TextBlock Text="Speed property" />
+            <ComboBox IsEditable="True" ItemsSource="{Binding NumericPropertyNames}" Text="{Binding SpeedProperty, UpdateSourceTrigger=LostFocus}" />
+            <CheckBox Content="Trigger enabled" IsChecked="{Binding TriggerEnabled}" Margin="0,4" />
+            <TextBlock Text="Trigger enabled property" />
+            <ComboBox IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}" Text="{Binding TriggerEnabledProperty, UpdateSourceTrigger=LostFocus}" />
+            <TextBlock Text="Trigger source property" />
+            <ComboBox IsEditable="True" ItemsSource="{Binding NumericPropertyNames}" Text="{Binding TriggerSource, UpdateSourceTrigger=LostFocus}" />
+            <TextBlock Text="Trigger level" />
+            <TextBox Text="{Binding TriggerLevel, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+            <TextBlock Text="Level property" />
+            <ComboBox IsEditable="True" ItemsSource="{Binding NumericPropertyNames}" Text="{Binding TriggerLevelProperty, UpdateSourceTrigger=LostFocus}" />
+            <CheckBox Content="Rising edge" IsChecked="{Binding RisingEdge}" Margin="0,4" />
+            <TextBlock Text="Edge property (true=rising)" />
+            <ComboBox IsEditable="True" ItemsSource="{Binding BooleanPropertyNames}" Text="{Binding RisingEdgeProperty, UpdateSourceTrigger=LostFocus}" />
+            <TextBlock TextWrapping="Wrap" Margin="0,8" Text="Speed: 0.02-6 seconds/div. Amplitude is units/div (1e-9 to 1e9); offset is the value at screen center. Trigger captures one screen after a sampled level crossing and holds it until the next crossing. Blank bindings use manual values. Invalid bound settings are reported below." />
+            <Button Content="Add input" Command="{Binding AddChannelCommand}" Padding="8,4" HorizontalAlignment="Left" Margin="0,0,0,8" />
+            <ItemsControl ItemsSource="{Binding Channels}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,0,0,8">
+                            <StackPanel>
+                                <TextBlock Text="Input property" />
+                                <ComboBox x:Name="InputPropertyEditor" IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}" Text="{Binding InputProperty, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Text="Color" />
+                                <ComboBox x:Name="ChannelColorEditor" ItemsSource="{Binding DataContext.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedItem="{Binding Color}" />
+                                <TextBlock Text="Color property" />
+                                <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.ColorPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}" Text="{Binding ColorProperty, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Text="Units/div" />
+                                <TextBox x:Name="AmplitudeEditor" Text="{Binding Amplitude, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+                                <TextBlock Text="Amplitude property" />
+                                <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}" Text="{Binding AmplitudeProperty, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Text="Vertical offset" />
+                                <TextBox Text="{Binding Offset, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+                                <TextBlock Text="Offset property" />
+                                <ComboBox IsEditable="True" ItemsSource="{Binding DataContext.NumericPropertyNames, RelativeSource={RelativeSource AncestorType=UserControl}}" Text="{Binding OffsetProperty, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Foreground="Firebrick" Text="{Binding Status}" TextWrapping="Wrap" />
+                                <Button Content="Remove" Padding="8,4" Margin="0,4,0,0" HorizontalAlignment="Left" Command="{Binding DataContext.RemoveChannelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

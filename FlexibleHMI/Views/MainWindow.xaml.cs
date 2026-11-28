@@ -1,7 +1,9 @@
 ﻿using FlexibleHMI.Interfaces;
 using FlexibleHMI.Services;
+using FlexibleHMI.Templates;
 using FlexibleHMI.ViewModels;
 using FlexibleHMI.Views;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -30,9 +32,16 @@ public partial class MainWindow : Window
     /// <summary>Initializes the window, applies persisted dimensions, and connects view-model events.</summary>
     /// <param name="viewModel">The view model supplying the window's data and commands.</param>
     /// <param name="userSettingsService">The service providing persisted window dimensions.</param>
-    public MainWindow(MainWindowViewModel viewModel, IUserSettingsService userSettingsService)
+    ///
+    public MainWindow(MainWindowViewModel viewModel, IUserSettingsService userSettingsService,
+            [FromKeyedServices(ViewKind.MainView)] ViewTemplateSelector firstSelector,
+            [FromKeyedServices(ViewKind.DetailsView)] ViewTemplateSelector secondSelector)
     {
         InitializeComponent();
+        FirstContent.ContentTemplateSelector = firstSelector;
+        SecondContent.ContentTemplateSelector = secondSelector;
+        AddHandler(GridDropRequest.Event, new EventHandler<GridDropRequest>(GridDrop_Requested));
+
         _userSettingsService = userSettingsService;
         Width = Math.Clamp(userSettingsService.WindowWidth, MinWidth, Math.Max(MinWidth, SystemParameters.WorkArea.Width));
         Height = Math.Clamp(userSettingsService.WindowHeight, MinHeight, Math.Max(MinHeight, SystemParameters.WorkArea.Height));
@@ -263,6 +272,13 @@ public partial class MainWindow : Window
         }
 
         ClearDropIndicator();
+        e.Handled = true;
+    }
+
+    private void GridDrop_Requested(object? sender, GridDropRequest e)
+    {
+        if (DataContext is not MainWindowViewModel viewModel) return;
+        e.Succeeded = viewModel.DropOnGrid(e.Data, e.Target, e.Row, e.Column, e.Copy);
         e.Handled = true;
     }
 

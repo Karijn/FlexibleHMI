@@ -5,10 +5,15 @@
     <Project Path="Calculator.UI/Calculator.UI.csproj" Id="739e3c77-4425-4713-936b-b166c7b2cdc4" />
     <Project Path="Calculator/Calculator.csproj" Id="99439aa4-40ff-4a75-867f-981c7216b593" />
   </Folder>
-  <Folder Name="/Communication Manager/">
+  <Folder Name="/CommunicationManager/">
     <Project Path="CommunicationManager.Interfaces/CommunicationManager.Interfaces.csproj" Id="dd0a5250-0857-49ed-abd9-9ba9a11a845a" />
     <Project Path="CommunicationManager.UI/CommunicationManager.UI.csproj" Id="26d0b336-310c-4fc5-a0ef-68adb2aa566a" />
     <Project Path="CommunicationManager/CommunicationManager.csproj" Id="cc7f072d-883f-46ff-9519-5b8d4aa4182b" />
+  </Folder>
+  <Folder Name="/Containers/">
+    <Project Path="Containers.Interfaces/Containers.Interfaces.csproj" />
+    <Project Path="Containers.UI/Containers.UI.csproj" />
+    <Project Path="Containers/Containers.csproj" />
   </Folder>
   <Folder Name="/Flexible HMI/">
     <Project Path="FlexibleHMI.Interfaces/FlexibleHMI.Interfaces.csproj" Id="90b7a2c7-2965-4b72-8eaf-90186c06f885" />

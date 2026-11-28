@@ -1,6 +1,7 @@
 ﻿using FlexibleHMI.Controls;
 using FlexibleHMI.Interfaces;
 using FlexibleHMI.Services;
+using FlexibleHMI.Templates;
 using FlexibleHMI.ViewModels;
 using FlexibleHMI.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,9 @@ public partial class App : Application
     /// <summary>Holds the service provider built during application startup, or <see langword="null"/> before startup.</summary>
     public static ServiceProvider? _serviceProvider;
 
+    private static readonly List<AssemblyDependencyResolver> AddinDependencyResolvers = new();
+    private static readonly HashSet<string> AddinResolverAssemblyPaths = new(StringComparer.OrdinalIgnoreCase);
+
     /// <inheritdoc />
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -30,6 +34,8 @@ public partial class App : Application
 
         ConfigureServices(services);
 
+        AssemblyLoadContext.Default.Resolving += ResolveAddinDependency;
+
         var addinsDirectory = Path.Combine(AppContext.BaseDirectory, "Addins");
         var assemblies = new List<Assembly> { Assembly.GetExecutingAssembly() };
         AddAssemblies(AppContext.BaseDirectory, assemblies);
@@ -38,23 +44,31 @@ public partial class App : Application
         //services.AddTransient<VUMeterControl>();
         //services.AddTransient<VuMeterNode>();
 
+        services.AddKeyedSingleton<ViewTemplateSelector>(ViewKind.MainView, (provider, _) =>
+            ActivatorUtilities.CreateInstance<ViewTemplateSelector>(provider, ViewKind.MainView));
+
+        services.AddKeyedSingleton<ViewTemplateSelector>(ViewKind.DetailsView, (provider, _) =>
+            ActivatorUtilities.CreateInstance<ViewTemplateSelector>(provider, ViewKind.DetailsView));
 
         var addIns = RegisterAddinServices(services, assemblies);
-
-
 
         _serviceProvider = services.BuildServiceProvider();
 
         var dataTemplateManager = _serviceProvider.GetRequiredService<IDataTemplateManager>();
         InitializeAddIns(addIns, _serviceProvider, dataTemplateManager);
 
-        //dataTemplateManager.RegisterDataTemplate<VuMeterNode, VUMeterControl>();
+
+
 
         var creators = _serviceProvider.GetRequiredService<IDictionary<string, TreeItemOption>>();
 
         var settings = _serviceProvider.GetRequiredService<IUserSettingsService>();
         _serviceProvider.GetRequiredService<IThemeService>().ApplyTheme(settings.Theme);
         MainWindowViewModel viewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
+
+        dataTemplateManager.RegisterKeyedTemplate<DefaultDetailsView>("DefaultDetailsTemplate");
+        dataTemplateManager.RegisterKeyedTemplate<EmptyControl>("EmptyTemplate");
+
 
         viewModel.IsMainContentFullScreen = settings.IsMainContentFullScreen;
 
@@ -74,6 +88,19 @@ public partial class App : Application
     /// <param name="services"></param>
     private static IServiceCollection ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton<IDataTemplateManager, DataTemplateManager>();
+
+        services.AddSingleton<DataTemplate>(provider =>
+            provider.GetRequiredService<ResourceDictionary>()["DefaultDetailsTemplate"] as DataTemplate
+            ?? throw new InvalidOperationException("Data template 'DefaultDetailsTemplate' is missing or invalid."));
+
+        services.AddSingleton(_ => (ResourceDictionary)LoadComponent(
+            new Uri("/FlexibleHMI;component/Views/ViewTemplates.xaml", UriKind.Relative)));
+
+        services.AddSingleton<DataTemplate>(provider =>
+            provider.GetRequiredService<ResourceDictionary>()["DefaultDetailsTemplate"] as DataTemplate
+            ?? throw new InvalidOperationException("Data template 'DefaultDetailsTemplate' is missing or invalid."));
+
         services.AddSingleton<IConfirmationService, MessageBoxConfirmationService>();
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<ITreeDocumentProperties, EmptyTreeDocumentProperties>();
@@ -127,21 +154,48 @@ public partial class App : Application
     /// <param name="assemblies"></param>
     private static void AddAssemblies(string addinsDirectory, List<Assembly> assemblies)
     {
-        if (Directory.Exists(addinsDirectory))
+        if (!Directory.Exists(addinsDirectory))
         {
-            foreach (var addinAssemblyPath in Directory.EnumerateFiles(addinsDirectory, "*.dll", SearchOption.AllDirectories))
+            return;
+        }
+
+        foreach (var addinAssemblyPath in Directory.EnumerateFiles(addinsDirectory, "*.dll", SearchOption.AllDirectories))
+        {
+            var fullPath = Path.GetFullPath(addinAssemblyPath);
+            var dependencyManifestPath = Path.ChangeExtension(fullPath, ".deps.json");
+            if (File.Exists(dependencyManifestPath) && AddinResolverAssemblyPaths.Add(fullPath))
             {
-                try
-                {
-                    var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(addinAssemblyPath));
-                    assemblies.Add(assembly);
-                }
-                catch
-                {
-                    // eat exceptions for now, maybe log them later
-                }
+                AddinDependencyResolvers.Add(new AssemblyDependencyResolver(fullPath));
+            }
+
+            try
+            {
+                var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(fullPath);
+                assemblies.Add(assembly);
+            }
+            catch (BadImageFormatException)
+            {
+                // Ignore native or otherwise non-managed DLLs in the add-in directories.
+            }
+            catch (FileLoadException ex)
+            {
+                System.Diagnostics.Trace.TraceError($"Failed to load add-in assembly '{fullPath}': {ex}");
             }
         }
+    }
+
+    private static Assembly? ResolveAddinDependency(AssemblyLoadContext context, AssemblyName assemblyName)
+    {
+        foreach (var resolver in AddinDependencyResolvers)
+        {
+            var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+            if (assemblyPath is not null)
+            {
+                return context.LoadFromAssemblyPath(assemblyPath);
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Discovers add-in registrators in the supplied assemblies and lets each register its services.</summary>
@@ -240,7 +294,7 @@ public class SingleChildCreator : TreeItemOption
     /// <summary>Initializes a creator for single-child items.</summary>
     /// <param name="serviceProvider">The service provider used by the base item-option implementation.</param>
     public SingleChildCreator(IServiceProvider serviceProvider)
-        : base("singlechild", "Single-child item", "Test Nodes", "Can contain at most one child", TreeItemOption.CreateDiamondImage(Colors.Blue), 
+        : base("singlechild", "Single-child item", "Test Nodes", "Can contain at most one child", TreeItemOption.CreateDiamondImage(Colors.Blue),
             serviceProvider)
     {
     }
@@ -264,7 +318,7 @@ public class GridCreator : TreeItemOption
     /// <summary>Initializes a creator for grid items.</summary>
     /// <param name="serviceProvider">The service provider used by the base item-option implementation.</param>
     public GridCreator(IServiceProvider serviceProvider)
-        : base("grid", "Grid item", "Test Nodes", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Gold), 
+        : base("grid", "Grid item", "Test Nodes", "Can contain any number of children", TreeItemOption.CreateDiamondImage(Colors.Gold),
             serviceProvider)
     { }
 }

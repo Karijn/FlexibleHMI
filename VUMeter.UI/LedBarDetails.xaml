@@ -1,0 +1,73 @@
+<UserControl x:Class="VUMeter.UI.LedBarDetails"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="8">
+        <TextBlock Text="LED Bar VU Meter" FontSize="20" Margin="0,0,0,8" />
+        <TextBlock Text="Column to configure (1-based)" />
+        <TextBox x:Name="SelectedColumnEditor" Text="{Binding SelectedColumn, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=SelectedColumnEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Selected column numeric property" />
+        <ComboBox x:Name="PropertySelector" IsEditable="True" ItemsSource="{Binding NumericPropertyNames}"
+                  Text="{Binding PropertyName, UpdateSourceTrigger=LostFocus}" Margin="0,0,0,8" />
+        <TextBlock Text="Columns" />
+        <TextBox x:Name="ColumnCountEditor" Text="{Binding ColumnCount, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=ColumnCountEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Bars per column" />
+        <TextBox x:Name="SegmentCountEditor" Text="{Binding SegmentCount, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=SegmentCountEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Lit rows around level (0 = all below)" />
+        <TextBox x:Name="VisibleRowsEditor" Text="{Binding VisibleRows, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=VisibleRowsEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Fade duration (milliseconds; 0 = instant)" />
+        <TextBox x:Name="FadeEditor" Text="{Binding FadeMilliseconds, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=FadeEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Minimum" />
+        <TextBox x:Name="MinimumEditor" Text="{Binding Minimum, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=MinimumEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Maximum" />
+        <TextBox x:Name="MaximumEditor" Text="{Binding Maximum, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=MaximumEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,0,0,8" />
+        <TextBlock Text="Base color" />
+        <colorpicker:PortableColorPicker x:Name="BaseColorPicker" SelectedColor="{Binding BaseColor, Mode=TwoWay}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+        <CheckBox Content="Interpolate colors (gradient)" IsChecked="{Binding UseGradient}" Margin="0,0,0,8" />
+        <TextBlock Text="Color stop height unit" />
+        <ComboBox x:Name="HeightUnitEditor" ItemsSource="{Binding HeightUnits}"
+                  SelectedItem="{Binding HeightUnit, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,8"
+                   Text="{Binding ElementName=HeightUnitEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+        <TextBlock Text="Color stops (height from bottom)" />
+        <ItemsControl ItemsSource="{Binding ColorStops}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="0,4">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="HeightEditor" Width="90" VerticalAlignment="Center"
+                                     Text="{Binding Height, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+                            <colorpicker:PortableColorPicker SelectedColor="{Binding Color, Mode=TwoWay}" Margin="8,0" />
+                            <TextBox x:Name="ColorEditor" Width="90" VerticalAlignment="Center" Margin="0,0,8,0"
+                                     Text="{Binding ColorText, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" />
+                            <Button Content="Remove" Command="{Binding DataContext.RemoveColorStopCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" />
+                        </StackPanel>
+                        <TextBlock Foreground="Firebrick" TextWrapping="Wrap"
+                                   Text="{Binding ElementName=HeightEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+                        <TextBlock Foreground="Firebrick" TextWrapping="Wrap"
+                                   Text="{Binding ElementName=ColorEditor, Path=(Validation.Errors)[0].ErrorContent}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Content="Add color stop" Command="{Binding AddColorStopCommand}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+    </StackPanel>
+    </ScrollViewer>
+</UserControl>

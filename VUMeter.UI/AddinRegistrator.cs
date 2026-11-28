@@ -19,10 +19,16 @@ public class AddinRegistrator : IAddInRegistrator
     {
         services.AddKeyedTransient<TreeItemOption, VUMeterCreator>(VUMeterCreator.jsonkey);
         services.AddKeyedTransient<TreeItemNode, VUMeterViewModel>(VUMeterCreator.jsonkey);
+        services.AddMainAndDetail<VUMeterViewModel>("VUMeterDetails", "DefaultDetailsTemplate");
         services.AddKeyedTransient<TreeItemOption, XYControlCreator>(XYControlCreator.KindName);
         services.AddKeyedTransient<TreeItemNode, XYControlViewModel>(XYControlCreator.KindName);
+        services.AddMainAndDetail<XYControlViewModel>("XYControlDetails", "DefaultDetailsTemplate");
         services.AddKeyedTransient<TreeItemOption, OscilloscopeCreator>(OscilloscopeCreator.KindName);
         services.AddKeyedTransient<TreeItemNode, OscilloscopeViewModel>(OscilloscopeCreator.KindName);
+        services.AddMainAndDetail<OscilloscopeViewModel>("OscilloscopeDetails", "DefaultDetailsTemplate");
+        services.AddKeyedTransient<TreeItemOption, LedBarCreator>(LedBarCreator.KindName);
+        services.AddKeyedTransient<TreeItemNode, LedBarViewModel>(LedBarCreator.KindName);
+        services.AddMainAndDetail<LedBarViewModel>("LedBarDetails", "DefaultDetailsTemplate");
     }
 
     /// <summary>
@@ -33,7 +39,14 @@ public class AddinRegistrator : IAddInRegistrator
     public void InitializeAddIn(ServiceProvider serviceProvider, IDataTemplateManager dataTemplateManager)
     {
         dataTemplateManager.RegisterDataTemplate<VUMeterViewModel, VUMeterView>();
+        dataTemplateManager.RegisterKeyedTemplate<VUMeterView>("VUMeterMain");
+        dataTemplateManager.RegisterKeyedTemplate<VUMeterDetails>("VUMeterDetails");
         dataTemplateManager.RegisterDataTemplate<XYControlViewModel, XYControlView>();
+        dataTemplateManager.RegisterKeyedTemplate<XYControlDetails>("XYControlDetails");
         dataTemplateManager.RegisterDataTemplate<OscilloscopeViewModel, OscilloscopeView>();
+        dataTemplateManager.RegisterKeyedTemplate<OscilloscopeDetails>("OscilloscopeDetails");
+        dataTemplateManager.RegisterDataTemplate<LedBarViewModel, LedBarView>();
+        dataTemplateManager.RegisterKeyedTemplate<LedBarView>("LedBarMain");
+        dataTemplateManager.RegisterKeyedTemplate<LedBarDetails>("LedBarDetails");
     }
 }

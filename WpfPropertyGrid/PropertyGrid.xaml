@@ -27,6 +27,7 @@
         </Style>
 
         <pg:PropertyGridConverter x:Key="PropertyGridConverter" />
+        <pg:ColorToBrushConverter x:Key="ColorToBrushConverter" />
 
         <CollectionViewSource x:Key="PropertiesSource">
             <CollectionViewSource.GroupDescriptions>
@@ -552,9 +553,12 @@
                                     <DatePicker SelectedDate="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
                                 </DataTemplate>
                             </pg:PropertyGridDataTemplate>
-                            <pg:PropertyGridDataTemplate IsReadOnly="False" PropertyType="System.Windows.Media.Color, PresentationCore">
+                            
+                            <pg:PropertyGridDataTemplate IsReadOnly="False" 
+                                                         PropertyType="System.Windows.Media.Color, PresentationCore">
                                 <DataTemplate>
-                                    <DockPanel LastChildFill="true" ToolTip="{Binding Value, Mode=OneWay}">
+                                    <DockPanel LastChildFill="true" 
+                                               ToolTip="{Binding Value, Mode=OneWay}">
                                         <Button
                                             Padding="4,0,4,0"
                                             HorizontalAlignment="Stretch"

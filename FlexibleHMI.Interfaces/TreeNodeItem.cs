@@ -1,9 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Text;
 using System.Windows.Media;
 
 namespace FlexibleHMI.Interfaces;
@@ -14,13 +11,14 @@ public abstract class TreeItemNode : ObservableObject
     /// <summary>Gets the item kind used for document persistence and creation.</summary>
     public abstract string Kind { get; }
 
-    private readonly ObservableCollection<TreeItemNode> _children = new();
+    private readonly ObservableCollection<TreeItemNode> _children;
     private bool _isCurrent;
     private bool _isExpanded;
 
     /// <summary>Initializes a document tree item.</summary>
     protected TreeItemNode()
     {
+        _children = new ChildCollection(this);
     }
 
     //    [PropertyGridOptions(SortOrder = 1)]
@@ -62,6 +60,47 @@ public abstract class TreeItemNode : ObservableObject
     /// <summary>Gets the parent item, if assigned.</summary>
     [Browsable(false)]
     public TreeItemNode? Parent { get; private set; }
+
+    private sealed class ChildCollection(TreeItemNode owner) : ObservableCollection<TreeItemNode>
+    {
+        private void Validate(TreeItemNode child, int count)
+        {
+            ArgumentNullException.ThrowIfNull(child);
+            if (child.Parent is not null) throw new InvalidOperationException("The item already has a parent.");
+            if (!owner.CanAcceptChildCount(count)) throw new InvalidOperationException("The item cannot accept another child.");
+            for (TreeItemNode? current = owner; current is not null; current = current.Parent)
+                if (ReferenceEquals(current, child)) throw new InvalidOperationException("A tree item cannot contain itself or an ancestor.");
+        }
+
+        protected override void InsertItem(int index, TreeItemNode item)
+        {
+            if (index < 0 || index > Count) throw new ArgumentOutOfRangeException(nameof(index));
+            Validate(item, Count + 1);
+            item.Parent = owner;
+            base.InsertItem(index, item);
+        }
+
+        protected override void RemoveItem(int index)
+        {
+            this[index].Parent = null;
+            base.RemoveItem(index);
+        }
+
+        protected override void SetItem(int index, TreeItemNode item)
+        {
+            if (ReferenceEquals(this[index], item)) return;
+            Validate(item, Count);
+            this[index].Parent = null;
+            item.Parent = owner;
+            base.SetItem(index, item);
+        }
+
+        protected override void ClearItems()
+        {
+            foreach (var child in this) child.Parent = null;
+            base.ClearItems();
+        }
+    }
 
  //   [PropertyGridOptions(SortOrder = 30)]
     /// <summary>Gets a description of the item's child rule.</summary>
